@@ -1,6 +1,3 @@
-## List All deployed Envs and their modules
-curl localhost:4567/envs
-
 ## Deploy Mod
 curl -H "Content-Type: application/json" -X POST -d "{\"myorg-ntp\":{\"version\":\"e93a55d\",\"type\":\"git\",\"source\":\"https://github.com/ipcrm/ipcrm-ntp.git\"}}" localhost:4567/deploy_mod
 curl -H "Content-Type: application/json" -X POST -d "{\"myorg-teamx\":{\"version\":\"ced1b64\",\"type\":\"git\",\"source\":\"https://github.com/ipcrm/teamx_hieradata.git\"}}" localhost:4567/deploy_mod
@@ -19,4 +16,10 @@ curl localhost:4567/envs/test/modules
 
 ### Compare 2 envs
 curl -sH "Content-Type: application/json" -X POST -d "[\"test\",\"test1\"]" localhost:4567/envs/compare
+
+## List all deployed global modules (and their versions)
+curl localhost:4567/modules
+
+## List All deployed Envs and their modules
+curl localhost:4567/envs
 
