@@ -14,7 +14,7 @@ class Pem
 
   def initialize(logger)
     @conf = YAML.load_file('config.yml')
-    @conf['envdir']  = "#{@conf['basedir']}/envs"
+    @conf['envdir']  = "#{@conf['basedir']}/environments"
     @conf['mod_dir'] = "#{@conf['basedir']}/modules"
     @logger = logger
 
