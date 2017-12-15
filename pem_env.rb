@@ -32,9 +32,10 @@ class Pem_env
           @logger.debug('Pem_env::deploy') { "pem_env::deploying module succeeded" }
         end
 
-        # Need to add environment.conf setup
+        # TODO: Need to add environment.conf setup
 
 
+        @pem.filesync_deploy(@logger)
         @logger.debug('Pem_env::deploy') { "pem_env::deploy successfully created #{@location} " }
       rescue => err
         Pem::log_error(err,@logger)

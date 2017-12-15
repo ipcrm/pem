@@ -24,6 +24,7 @@ GEM
     minitar (0.6.1)
     multipart-post (2.0.0)
     mustermann (1.0.1)
+    openssl (2.1.0)
     pry (0.11.3)
       coderay (~> 1.1.0)
       method_source (~> 0.9.0)
@@ -58,6 +59,7 @@ PLATFORMS
   x86_64-darwin-15
 
 DEPENDENCIES
+  openssl
   pry
   puppet_forge
   rerun

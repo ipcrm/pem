@@ -4,6 +4,7 @@ require 'puppet_forge'
 require 'rugged'
 require 'pathname'
 require 'sinatra'
+require 'openssl'
 require_relative 'pem_env'
 
 class Pem
@@ -207,6 +208,26 @@ class Pem
     end
 
     diffs
+  end
+
+  #
+  # Filesync handling
+  #
+  def filesync_deploy(logger)
+    @logger.debug('Pem::filesync_deploy') {"starting filesync deploy"}
+
+    ssl_options = {
+      'client_cert' => OpenSSL::X509::Certificate.new(File.read(@conf['filesync_cert'])),
+      'client_key'  => OpenSSL::PKey::RSA.new(File.read(@conf['filesync_cert_key'])),
+      'ca_file'     => @conf['filesync_ca_cert']
+    }
+
+    conn = Faraday.new(:url => "https://#{@conf['master']}:8140", ssl: ssl_options)
+    conn.post   '/file-sync/v1/commit', { "coommit-all" => true }
+    conn.post   '/file-sync/v1/force-sync'
+    conn.delete '/puppet-admin-api/v1/environment-cache'
+
+    @logger.debug('Pem::filesync_deploy') {"completed filesync deploy"}
   end
 
   #
