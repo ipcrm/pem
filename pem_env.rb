@@ -143,7 +143,7 @@ class Pem_env
     begin
       if File.exists?("#{@location}/modules/#{mod}/.git")
         r = Rugged::Repository.discover("#{@location}/modules/#{mod}/.git").head
-        return r.target.oid[0,7]
+        return r.target.oid[0,6]
       elsif File.exists?("#{@location}/modules/#{mod}/metadata.json")
         return JSON::load(File.read("#{@location}/modules/#{mod}/metadata.json"))['version']
       else
