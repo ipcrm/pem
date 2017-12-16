@@ -224,8 +224,13 @@ class Pem
 
     conn = Faraday.new(:url => "https://#{@conf['master']}:8140", ssl: ssl_options)
     conn.post   '/file-sync/v1/commit', { "coommit-all" => true }
+    @logger.debug('Pem::filesync_deploy') {"Hitting filesync commit endpoint..."}
+
     conn.post   '/file-sync/v1/force-sync'
+    @logger.debug('Pem::filesync_deploy') {"Hitting filesync force-sync endpoint..."}
+
     conn.delete '/puppet-admin-api/v1/environment-cache'
+    @logger.debug('Pem::filesync_deploy') {"Hitting puppet-admin-api env endpoint..."}
 
     @logger.debug('Pem::filesync_deploy') {"completed filesync deploy"}
   end
