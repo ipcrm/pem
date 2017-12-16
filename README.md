@@ -1,6 +1,6 @@
 # PEM
 
-- Expects your using rbenv, tested with 2.3.1 and 2.4.1
+- Tested with both ruby 2.3.1 and 2.4.1
 - Copy config.yml.default to config.yml
 - Edit config.yml as needed for your environment
 
