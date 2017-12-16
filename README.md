@@ -47,7 +47,7 @@ curl -sH "Content-Type: application/json" -X POST -d "[\"test\",\"test1\"]" loca
 curl localhost:4567/envs  
 ```
 
-## Converting an existing environment (that uses r10k today) can be done:
+## Converting an existing environment (that uses r10k today)
 
 > Note: will not currently work with PE only modules from forge
 
