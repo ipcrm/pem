@@ -56,7 +56,7 @@ GEM
     rerun (0.11.0)
       listen (~> 3.0)
     ruby_dep (1.5.0)
-    rugged (0.26.0)
+    rugged (0.25.1.1)
     semantic_puppet (0.1.4)
       gettext-setup (>= 0.3)
     sinatra (2.0.0)
@@ -77,7 +77,7 @@ DEPENDENCIES
   puppet_forge
   r10k
   rerun
-  rugged
+  rugged (= 0.25.1.1)
   sinatra
 
 BUNDLED WITH
