@@ -17,6 +17,7 @@ end
 # Dump env list
 #
 get '/envs' do
+  content_type 'application/json'
   pem.envs.to_json
 end
 
@@ -24,6 +25,7 @@ end
 # Deploy a global module
 #
 post '/deploy_mod' do
+  content_type 'application/json'
   data = JSON.parse(request.body.read)
 
   begin
@@ -40,6 +42,7 @@ end
 # Get global modules
 #
 get '/modules' do
+  content_type 'application/json'
   pem.get_modules.to_json
 end
 
@@ -47,6 +50,7 @@ end
 # Create an environment
 #
 post '/envs/:name/create' do
+  content_type 'application/json'
   data = JSON.parse(request.body.read)
   e = Pem_env.new(params[:name],pem)
 
@@ -62,6 +66,7 @@ end
 # Get modules for configured enviornment
 #
 get '/envs/:name/modules' do
+  content_type 'application/json'
   e = Pem_env.new(params[:name],pem)
   e.get_mods.to_json
 end
@@ -70,6 +75,7 @@ end
 # Compare two envs
 #
 post '/envs/compare' do
+  content_type 'application/json'
   data = JSON.parse(request.body.read)
   pem.compare_envs(data[0],data[1]).to_json
 end

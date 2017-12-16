@@ -4,6 +4,7 @@ require 'puppet_forge'
 require 'rugged'
 require 'pathname'
 require 'json'
+require 'r10k/puppetfile'
 
 class Pem_env
   attr_reader :location
@@ -97,6 +98,30 @@ class Pem_env
   end
 
   #
+  # Load puppetfile mods (temp method)
+  #
+  def load_puppetfile_mods
+    mods = {}
+    puppetfile = R10K::Puppetfile.new(@location)
+
+    begin
+      modules = puppetfile.modules
+      modules.each do |mod|
+        if mod.is_a? R10K::Module::Forge
+          mods[mod.name] = mod.expected_version
+        else mod.is_a? R10K::Module::Git
+          mods[mod.name] = mod.version
+        end
+      end
+    rescue => err
+      Pem::log_error(err,@logger)
+      raise(err) unless puppetfile.load
+    end
+
+    mods
+  end
+
+  #
   # Get version for deployed module in this env
   #
   def get_mod_ver(mod)
@@ -107,9 +132,9 @@ class Pem_env
       elsif File.exists?("#{@location}/modules/#{mod}/metadata.json")
         return JSON::load(File.read("#{@location}/modules/#{mod}/metadata.json"))['version']
       else
-        err = "Unable to lookup module version for #{mod}, not a git repo and missing a metadata.json!"
-        Pem::log_error(err,@logger)
-        raise(err)
+        # Temp workaround for testing on masters still using code-manager
+        mods = load_puppetfile_mods
+        return mods[mod]
       end
     rescue => err
       Pem::log_error(err,@logger)

@@ -2,6 +2,9 @@ GEM
   remote: https://rubygems.org/
   specs:
     coderay (1.1.2)
+    colored (1.2)
+    cri (2.6.1)
+      colored (~> 1.2)
     faraday (0.9.2)
       multipart-post (>= 1.2, < 3)
     faraday_middleware (0.10.1)
@@ -20,8 +23,10 @@ GEM
       rb-inotify (~> 0.9, >= 0.9.7)
       ruby_dep (~> 1.2)
     locale (2.1.2)
+    log4r (1.1.10)
     method_source (0.9.0)
     minitar (0.6.1)
+    multi_json (1.12.2)
     multipart-post (2.0.0)
     mustermann (1.0.1)
     openssl (2.1.0)
@@ -33,6 +38,14 @@ GEM
       faraday_middleware (>= 0.9.0, < 0.11.0)
       gettext-setup (~> 0.11)
       minitar
+      semantic_puppet (~> 0.1.0)
+    r10k (2.5.5)
+      colored (= 1.2)
+      cri (~> 2.6.1)
+      gettext-setup (~> 0.5)
+      log4r (= 1.1.10)
+      multi_json (~> 1.10)
+      puppet_forge (~> 2.2)
       semantic_puppet (~> 0.1.0)
     rack (2.0.3)
     rack-protection (2.0.0)
@@ -62,6 +75,7 @@ DEPENDENCIES
   openssl
   pry
   puppet_forge
+  r10k
   rerun
   rugged
   sinatra
