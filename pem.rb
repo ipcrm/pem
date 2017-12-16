@@ -28,7 +28,7 @@ class Pem
     begin
       conf = YAML.load_file('config.yml')
 
-      unless ['basedir','master','filesync_cert','filesync_cert_key','filesync_ca_cert'].all? {|s| conf.key? s }
+      unless ['basedir','master','filesync_cert','filesync_cert_key','filesync_ca_cert'].all? {|s| conf.key? s and !conf[s].nil? }
         Pem::log_error("Missing required settings in config.yml",@logger)
         raise
       end
