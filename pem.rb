@@ -28,15 +28,16 @@ class Pem
     begin
       conf = YAML.load_file('config.yml')
 
-      ['basedir','master','filesync_cert','filesync_cert_key','filesync_ca_cert'].all? {|s| 
-        conf.key? s
-      } or raise("Missing required settings in config.yml")
+      unless ['basedir','master','filesync_cert','filesync_cert_key','filesync_ca_cert'].all? {|s| conf.key? s }
+        Pem::log_error("Missing required settings in config.yml",@logger)
+        raise
+      end
 
       conf['envdir']  = "#{conf['basedir']}/environments"
       conf['mod_dir'] = "#{conf['basedir']}/modules"
 
       return conf
-    rescue
+    rescue => err
       err = "Missing config file, or required configuration values - check config.yml"
       Pem::log_error(err,@logger)
       raise(err)
