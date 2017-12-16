@@ -13,14 +13,34 @@ class Pem
   attr_reader :envs
 
   def initialize(logger)
-    @conf = YAML.load_file('config.yml')
-    @conf['envdir']  = "#{@conf['basedir']}/environments"
-    @conf['mod_dir'] = "#{@conf['basedir']}/modules"
     @logger = logger
+    @conf = load_config
 
     setup
 
     @envs = get_envs_details
+  end
+
+  #
+  # Load config or fail if there is missing stuff
+  #
+  def load_config
+    begin
+      conf = YAML.load_file('config.yml')
+
+      ['basedir','master','filesync_cert','filesync_cert_key','filesync_ca_cert'].all? {|s| 
+        conf.key? s
+      } or raise("Missing required settings in config.yml")
+
+      conf['envdir']  = "#{conf['basedir']}/environments"
+      conf['mod_dir'] = "#{conf['basedir']}/modules"
+
+      return conf
+    rescue
+      err = "Missing config file, or required configuration values - check config.yml"
+      Pem::log_error(err,@logger)
+      raise(err)
+    end
   end
 
   #

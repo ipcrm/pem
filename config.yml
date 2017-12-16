@@ -1,5 +1,0 @@
-basedir: /var/tmp/pem
-filesync_cert: master.crt
-filesync_cert_key: master.key
-filesync_ca_cert: ca.crt
-master: master.inf.puppet.vm

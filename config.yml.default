@@ -1,0 +1,21 @@
+# Where to deploy code to (it will automatically use /environments/<path> when deploying)
+basedir: /etc/puppetlabs/code-staging
+
+# FQDN of the master server (for filesync endpoints - you should be running PEM on the master)
+# example: master.inf.puppet.vm
+master:
+
+# Master certificate; used for filesync auth
+# /etc/puppetlabs/puppet/ssl/certs/<FQDN>.pem
+filesync_cert:
+
+# private_key; used for filesync auth
+# /etc/puppetlabs/puppet/ssl/private_keys/<FQDN>.pem
+filesync_cert_key:
+
+# CA Certificate to use
+filesync_ca_cert: /etc/puppetlabs/puppet/ssl/certs/ca.pem
+
+# User & Group to set ownership to for code; after deploy a chown -R equiv is run
+user: pe-puppet
+group: pe-puppet
