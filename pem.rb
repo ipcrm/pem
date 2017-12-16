@@ -222,12 +222,12 @@ class Pem
       'ca_file'     => @conf['filesync_ca_cert']
     }
 
-    conn = Faraday.new(:url => "https://#{@conf['master']}:8140", ssl: ssl_options) do |farady|
-      faraday.requet :url_encoded
-      faraday.response :logger
+    conn = Faraday.new(:url => "https://#{@conf['master']}:8140", ssl: ssl_options) do |faraday|
+      faraday.request :json
+      faraday.adapter Faraday.default_adapter
     end
 
-    conn.post   '/file-sync/v1/commit', { "coommit-all" => true }
+    conn.post   '/file-sync/v1/commit', { "commit-all" => true }
     @logger.debug('Pem::filesync_deploy') {"Hitting filesync commit endpoint..."}
 
     conn.post   '/file-sync/v1/force-sync'
