@@ -18,6 +18,21 @@ class Pem_env
   end
 
   #
+  # Set permissions on environment location
+  #
+  def set_owner
+    user =  @conf['user'] || Process.uid
+    group = @conf['user'] || Process.gid
+
+    begin
+      FileUtils.chown_R(user,group,@location)
+    rescue => err
+      Pem::log_error(err,@logger)
+      raise(err)
+    end
+  end
+
+  #
   # Deploy a new environment, or remove and redeploy an environment
   #
   def deploy(modules)
@@ -35,7 +50,7 @@ class Pem_env
 
         # TODO: Need to add environment.conf setup
 
-
+        set_owner
         @pem.filesync_deploy(@logger)
         @logger.debug('Pem_env::deploy') { "pem_env::deploy successfully created #{@location} " }
       rescue => err
