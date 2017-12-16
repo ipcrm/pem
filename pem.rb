@@ -224,7 +224,7 @@ class Pem
 
     conn = Faraday.new(:url => "https://#{@conf['master']}:8140", ssl: ssl_options) do |faraday|
       faraday.request :json
-      faraday.timeout 300
+      faraday.options[:timeout] = 300
       faraday.adapter Faraday.default_adapter
     end
 
