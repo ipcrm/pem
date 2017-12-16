@@ -5,7 +5,7 @@
 
 ```
 bundle install
-be rerun ./pem_app.rb
+bundle exec rerun ./pem_app.rb
 ```
 
 ## Deploy Global Module
