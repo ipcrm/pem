@@ -1,6 +1,6 @@
 # PEM
 
-- Expects your using rbenv, with 2.3.1 installed
+- Expects your using rbenv, tested with 2.3.1 and 2.4.1
 - Edit config.yml as needed for your environment
 
 ```
