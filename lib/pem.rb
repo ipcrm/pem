@@ -5,7 +5,7 @@ require 'rugged'
 require 'pathname'
 require 'sinatra'
 require 'openssl'
-require_relative 'pem_env'
+require "#{File.dirname(__FILE__)}/pem_env"
 
 class Pem
   attr_reader :conf

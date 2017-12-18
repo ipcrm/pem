@@ -1,6 +1,6 @@
 require 'sinatra'
-require_relative 'pem'
-require_relative 'pem_env'
+require "#{File.dirname(__FILE__)}/lib/pem"
+require "#{File.dirname(__FILE__)}/lib/pem_env"
 
 # Assuming these go someplace useful in future
 logger = Logger.new(STDERR)
