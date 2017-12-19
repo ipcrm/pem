@@ -98,7 +98,7 @@ class PemApp < Sinatra::Base
   #   }
   # Response
   #   {
-  #     "status":"failed"
+  #     "status":"successful"
   #   }
   post '/envs/:name/create' do
     content_type 'application/json'
