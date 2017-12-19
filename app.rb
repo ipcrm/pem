@@ -65,23 +65,23 @@ class PemApp < Sinatra::Base
   # Request
   #   GET /modules
   # Response
-  # {
-  #   "fake-module": [
-  #     "0.5.0"
-  #     "0.5.1"
-  #     "0.7.3"
-  #   ],
-  #   "andulla-vsphere_conf": [
-  #     "0.0.9"
-  #   ],
-  #   "mod-fake": [
-  #     "d5f324",
-  #     "ae54f3"
-  #   ],
-  #   "aristanetworks-netdev_stdlib_eos": [
-  #     "1.2.0"
-  #   ]
-  # }
+  #  {
+  #    "fake-module": [
+  #      "0.5.0"
+  #      "0.5.1"
+  #      "0.7.3"
+  #    ],
+  #    "andulla-vsphere_conf": [
+  #      "0.0.9"
+  #    ],
+  #    "mod-fake": [
+  #      "d5f324",
+  #      "ae54f3"
+  #    ],
+  #    "aristanetworks-netdev_stdlib_eos": [
+  #      "1.2.0"
+  #    ]
+  #  }
   get '/modules' do
     content_type 'application/json'
     pem.modules.to_json
