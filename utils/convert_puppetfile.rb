@@ -29,11 +29,11 @@ modules.each do |mod|
   elsif mod.is_a? R10K::Module::Git
     puts "Deploying module #{mod.title}"
     conn.post '/deploy_mod', "myorg-#{mod.name}" => {
-      'version' => mod.version[0, 6],
+      'version' => mod.version[0, 7],
       'type' => 'git',
       'source' => mod.instance_variable_get(:@remote),
     }
-    create_env["myorg-#{mod.name}"] = mod.version[0, 6]
+    create_env["myorg-#{mod.name}"] = mod.version[0, 7]
   end
 end
 
