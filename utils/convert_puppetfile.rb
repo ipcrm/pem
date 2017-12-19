@@ -31,7 +31,7 @@ modules.each do |mod|
     conn.post '/deploy_mod', "myorg-#{mod.name}" => {
       'version' => mod.version[0, 6],
       'type' => 'git',
-      'source' => mod.instance_variable_get(:@remote)
+      'source' => mod.instance_variable_get(:@remote),
     }
     create_env["myorg-#{mod.name}"] = mod.version[0, 6]
   end

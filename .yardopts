@@ -1,0 +1,2 @@
+--plugin yard-sinatra
+app.rb **/*.rb

@@ -15,6 +15,10 @@ class Pem
   attr_reader :logger
   attr_reader :envs
 
+  # Initialize
+  #
+  # @param logger Logger Object
+  # @return PEM instance
   def initialize(logger)
     @logger = logger
     @conf = load_config
@@ -24,8 +28,9 @@ class Pem
     @envs = envs_details
   end
 
-  #
   # Load config or fail if there is missing stuff
+  #
+  # @return [Hash] Configuration hash
   #
   def load_config
     conf = YAML.load_file('config.yml')
@@ -45,7 +50,6 @@ class Pem
     raise(err)
   end
 
-  #
   # Build global dirs
   #
   def setup
@@ -61,9 +65,9 @@ class Pem
     end
   end
 
-  #
   # Deploy a module
-  #
+  # @param [String] name the name of the module.  must be <author>-<name> format
+  # @param [Hash] data a hash of all the info for deploying this module.  type: forge or git. version: forge module version or git hash
   def deploy_mod(name, data)
     @logger.debug('Pem::deploy_mod') { "pem::deploy_mod deploy #{name} starting" }
 
@@ -120,8 +124,10 @@ class Pem
     end
   end
 
-  #
   # Delete a module from global module dir
+  #
+  # @param [String] name the name of the module to delete
+  # @param [String] version the name of the version to delete
   #
   def purge_mod(name, version)
     tardir = "#{@conf['mod_dir']}/#{name}/#{version}"
@@ -138,8 +144,10 @@ class Pem
     @logger.debug('Pem::purge_mod') { "Successfully purged module #{name} @ #{version}" }
   end
 
-  #
   # Get all available versions of a given modules
+  #
+  # @param [String] mod the name of the module to return versions of
+  # @return [Array] all available global versions of module supplied
   #
   def mod_versions(mod)
     versions = []
@@ -151,8 +159,9 @@ class Pem
     versions
   end
 
-  #
   # Retrieve all global modules that have been deployed
+  #
+  # @return [Hash] All deployed global modules, and the versions of each
   #
   def modules
     modules = {}
@@ -171,9 +180,9 @@ class Pem
     modules
   end
 
-  #
   # Retrieve all envs
   #
+  # @return [Array] A list of all deployed environment names
   def show_envs
     return Pathname.new(@conf['envdir']).children.select(&:directory?).map { |e| e.basename.to_s }
   rescue => err
@@ -181,8 +190,9 @@ class Pem
     raise(err)
   end
 
-  #
   # Retrieve all envs with details
+  #
+  # @return [Hash] all deployed environments and the modules (including versions) that have been deployed
   #
   def envs_details
     current_envs = {}
@@ -194,16 +204,17 @@ class Pem
     current_envs
   end
 
-  #
   # Refresh @envs instance var with latest envs
   #
   def refresh_envs
     @envs = envs_details
   end
 
-  #
   # Compare Envs
   #
+  # @param [String] env1 Name of the first environment to compare the second two
+  # @param [String] env2 Name of the second environment to compare to the first
+  # @return [Hash] a listing of all modules with differences in the format of 'name' => ['env1' => <version, 'env2' => version]
   def compare_envs(env1, env2)
     diffs = {}
     e1 = @envs[env1]
@@ -227,10 +238,11 @@ class Pem
     diffs
   end
 
-  #
   # Filesync handling
   #
-  def filesync_deploy(_logger)
+  # This method commits changes to the staging code dir, force-syncs, and purges env caches on the master
+  #
+  def filesync_deploy
     @logger.debug('Pem::filesync_deploy') { 'starting filesync deploy' }
 
     ssl_options = {
@@ -257,9 +269,10 @@ class Pem
     @logger.debug('Pem::filesync_deploy') { 'completed filesync deploy' }
   end
 
-  #
   # Expose global error logging method
   #
+  # @param [String] err messsage to be printed
+  # @param logger logger object to print to
   def self.log_error(err, logger)
     logger.fatal(caller_locations(1, 1)[0].label) { 'Caught exception; exiting' }
     logger.fatal("\n" + err.to_s)

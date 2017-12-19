@@ -13,6 +13,10 @@ class PemEnv
   attr_reader :location
   attr_reader :modules
 
+  # Initialize
+  #
+  # @param [String] name the name of the new env
+  # @param [Object] pem an existing Pem object
   def initialize(name, pem)
     @conf     = pem.conf
     @logger   = pem.logger
@@ -20,8 +24,9 @@ class PemEnv
     @pem      = pem
   end
 
-  #
   # Set permissions on environment location
+  #
+  # Use to chown_R on the environment location
   #
   def set_owner
     user =  @conf['user'] || Process.uid
@@ -35,8 +40,10 @@ class PemEnv
     end
   end
 
-  #
   # Deploy a new environment, or remove and redeploy an environment
+  #
+  # @param [Hash] modules a hash of modules to deploy into the new environment,
+  #   format {'name' => 'version'} where version must be from the global module repository
   #
   def deploy(modules)
     if File.directory?(@location)
@@ -74,8 +81,11 @@ class PemEnv
     @pem.refresh_envs
   end
 
-  #
   # Deploy a module from global modules into this env
+  #
+  # @param [String] name the name of the module to deploy
+  # @param [String] version the version string (from a global module) to deploy
+  # @param [String] location the location of environment to deploy to (will be set in pemenv instance)
   #
   def deploy_mod(name, version, location)
     mod_name = name.split('-')[1]
@@ -95,8 +105,9 @@ class PemEnv
     end
   end
 
-  #
   # Determine the installed modules (and versions) in this env
+  #
+  # @return [Hash] a hash of all installed modules to this env, in the format {'modname' => 'version', 'modname' => 'version'}
   #
   def mods
     rmods = {}
@@ -113,8 +124,11 @@ class PemEnv
     rmods
   end
 
-  #
   # Load puppetfile mods (temp method)
+  #
+  # Currently this method is a shim to allow easy conversion of existing environments managed by r10k
+  #
+  # @return [Hash] a hash of all deployed modules and their current versions in format {'modname' => 'version', ...}
   #
   def load_puppetfile_mods
     mods = {}
@@ -137,8 +151,10 @@ class PemEnv
     mods
   end
 
-  #
   # Get version for deployed module in this env
+  #
+  # @param [String] mod the name of the module to check version of
+  # @return [String] the version string of the deployed version
   #
   def mod_ver(mod)
     if File.exist?("#{@location}/modules/#{mod}/.git")
@@ -156,26 +172,20 @@ class PemEnv
     raise(err)
   end
 
-  #
   # Purge environment from staging if present, commit filesync
   #
+  # @param [String] location the location of the environment to be purged
+  # @param [Object] logger the logger object to write messages to
+  #
   def self.destroy(location, logger)
-    logger.debug('PemEnv::create') { "pem_env::deploy removing #{location}" }
-    FileUtils.rm_rf(location)
-  rescue => err
-    Pem.log_error(err, logger)
-    raise(err)
+    begin
+      logger.debug('PemEnv::create') { "pem_env::deploy removing #{location}" }
+      FileUtils.rm_rf(location)
+    rescue => err
+      Pem.log_error(err, logger)
+      raise(err)
+    end
 
-    # TODO: other work to cleanup
-    #   commit filesync
-    #   purge caches
-  end
-
-  def self.manifest
-    # Read deployed env (metadata or from disk?) to determine modules deployed
-  end
-
-  def self.exists?
-    # Determine if this is a real, deployed env
+    @pem.filesync_deploy(logger)
   end
 end
