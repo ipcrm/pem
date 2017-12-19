@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require 'sinatra'
 require "#{File.dirname(__FILE__)}/lib/pem"
-require "#{File.dirname(__FILE__)}/lib/pem_env"
+require "#{File.dirname(__FILE__)}/lib/pemenv"
 
 # Assuming these go someplace useful in future
 logger = Logger.new(STDERR)
@@ -8,9 +10,8 @@ logger = Logger.new(STDOUT)
 
 pem = Pem.new(logger)
 
-
 get '/' do
-  puts "HI"
+  puts 'HI'
 end
 
 #
@@ -29,12 +30,12 @@ post '/deploy_mod' do
   data = JSON.parse(request.body.read)
 
   begin
-    data.each do |m,v|
-      pem.deploy_mod(m,v)
+    data.each do |m, v|
+      pem.deploy_mod(m, v)
     end
-    {'status' => 'successful'}.to_json
+    { 'status' => 'successful' }.to_json
   rescue
-    {'status' => 'failed'}.to_json
+    { 'status' => 'failed' }.to_json
   end
 end
 
@@ -43,7 +44,7 @@ end
 #
 get '/modules' do
   content_type 'application/json'
-  pem.get_modules.to_json
+  pem.modules.to_json
 end
 
 #
@@ -52,13 +53,13 @@ end
 post '/envs/:name/create' do
   content_type 'application/json'
   data = JSON.parse(request.body.read)
-  e = Pem_env.new(params[:name],pem)
+  e = PemEnv.new(params[:name], pem)
 
   begin
     e.deploy(data)
-    {'status' => 'successful'}.to_json
+    { 'status' => 'successful' }.to_json
   rescue
-    {'status' => 'failed'}.to_json
+    { 'status' => 'failed' }.to_json
   end
 end
 
@@ -67,8 +68,8 @@ end
 #
 get '/envs/:name/modules' do
   content_type 'application/json'
-  e = Pem_env.new(params[:name],pem)
-  e.get_mods.to_json
+  e = PemEnv.new(params[:name], pem)
+  e.mods.to_json
 end
 
 #
@@ -77,5 +78,5 @@ end
 post '/envs/compare' do
   content_type 'application/json'
   data = JSON.parse(request.body.read)
-  pem.compare_envs(data[0],data[1]).to_json
+  pem.compare_envs(data[0], data[1]).to_json
 end

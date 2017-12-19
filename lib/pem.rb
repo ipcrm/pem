@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'yaml'
 require 'logger'
 require 'puppet_forge'
@@ -5,8 +7,9 @@ require 'rugged'
 require 'pathname'
 require 'sinatra'
 require 'openssl'
-require "#{File.dirname(__FILE__)}/pem_env"
+require "#{File.dirname(__FILE__)}/pemenv"
 
+# PEM Main class
 class Pem
   attr_reader :conf
   attr_reader :logger
@@ -18,44 +21,42 @@ class Pem
 
     setup
 
-    @envs = get_envs_details
+    @envs = envs_details
   end
 
   #
   # Load config or fail if there is missing stuff
   #
   def load_config
-    begin
-      conf = YAML.load_file('config.yml')
+    conf = YAML.load_file('config.yml')
 
-      unless ['basedir','master','filesync_cert','filesync_cert_key','filesync_ca_cert'].all? {|s| conf.key? s and !conf[s].nil? }
-        Pem::log_error("Missing required settings in config.yml",@logger)
-        raise
-      end
-
-      conf['envdir']  = "#{conf['basedir']}/environments"
-      conf['mod_dir'] = "#{conf['basedir']}/modules"
-
-      return conf
-    rescue => err
-      err = "Missing config file, or required configuration values - check config.yml"
-      Pem::log_error(err,@logger)
-      raise(err)
+    unless %w[basedir master filesync_cert filesync_cert_key filesync_ca_cert].all? { |s| conf.key?(s) && !conf[s].nil? }
+      Pem.log_error('Missing required settings in config.yml', @logger)
+      raise
     end
+
+    conf['envdir']  = "#{conf['basedir']}/environments"
+    conf['mod_dir'] = "#{conf['basedir']}/modules"
+
+    return conf
+  rescue
+    err = 'Missing config file, or required configuration values - check config.yml'
+    Pem.log_error(err, @logger)
+    raise(err)
   end
 
   #
   # Build global dirs
   #
   def setup
-    @logger.debug('Pem::setup') {"entering pem::setup"}
+    @logger.debug('Pem::setup') { 'entering pem::setup' }
     # Make sure dirs exist
     begin
-      FileUtils.mkdir(@conf['basedir']) if not Dir.exists?(@conf['basedir'])
-      FileUtils.mkdir(@conf['mod_dir']) if not Dir.exists?(@conf['mod_dir'])
-      FileUtils.mkdir(@conf['envdir'])  if not Dir.exists?(@conf['envdir'])
+      FileUtils.mkdir(@conf['basedir']) unless Dir.exist?(@conf['basedir'])
+      FileUtils.mkdir(@conf['mod_dir']) unless Dir.exist?(@conf['mod_dir'])
+      FileUtils.mkdir(@conf['envdir'])  unless Dir.exist?(@conf['envdir'])
     rescue => err
-      Pem::log_error(err,@logger)
+      Pem.log_error(err, @logger)
       raise(err)
     end
   end
@@ -63,57 +64,57 @@ class Pem
   #
   # Deploy a module
   #
-  def deploy_mod(name,data)
-    @logger.debug('Pem::deploy_mod') {"pem::deploy_mod deploy #{name} starting"}
+  def deploy_mod(name, data)
+    @logger.debug('Pem::deploy_mod') { "pem::deploy_mod deploy #{name} starting" }
 
     # Require a <author>-<name> scheme so that we can have multiple modules of the same name
-    if !name.include?('-') or !name.count('-') == 1
+    if !name.include?('-') || (!name.count('-') == 1)
       err = "Module name: #{name} is not the correct format!  Must be <author>-<name>"
-      Pem::log_error(err,@logger)
+      Pem.log_error(err, @logger)
       raise(err)
     end
 
     case data['type']
     when 'forge'
       begin
-        PuppetForge.user_agent = "pem/1.0.0"
+        PuppetForge.user_agent = 'pem/1.0.0'
 
-        target_dir = "#{@conf['mod_dir']}/#{name}/#{data['version']}"
+        tardir = "#{@conf['mod_dir']}/#{name}/#{data['version']}"
         moddir = "#{@conf['mod_dir']}/#{name}"
 
-        FileUtils.mkdir(moddir) if not Dir.exists?(moddir)
-        purge_mod(name,data['version']) if Dir.exists?(target_dir)
+        FileUtils.mkdir(moddir) unless Dir.exist?(moddir)
+        purge_mod(name, data['version']) if Dir.exist?(tardir)
 
         release_slug = "#{name}-#{data['version']}"
-        release_tarball = release_slug + ".tar.gz"
+        release_tarball = release_slug + '.tar.gz'
 
         release = PuppetForge::Release.find release_slug
 
         Dir.chdir('/tmp') do
           release.download(Pathname(release_tarball))
           release.verify(Pathname(release_tarball))
-          PuppetForge::Unpacker.unpack(release_tarball, target_dir,'/tmp')
+          PuppetForge::Unpacker.unpack(release_tarball, tardir, '/tmp')
         end
 
-        @logger.debug('Pem::deploy_mod') {"pem::deploy_mod deploy #{name} @ #{data['version']} succeeded"}
+        @logger.debug('Pem::deploy_mod') { "pem::deploy_mod deploy #{name} @ #{data['version']} succeeded" }
       rescue => err
-        Pem::log_error(err,@logger)
+        Pem.log_error(err, @logger)
         raise(err)
       end
 
     when 'git'
       begin
-        target_dir = "#{@conf['mod_dir']}/#{name}/#{data['version']}"
+        tardir = "#{@conf['mod_dir']}/#{name}/#{data['version']}"
         moddir = "#{@conf['mod_dir']}/#{name}"
 
-        FileUtils.mkdir(moddir) if not Dir.exists?(moddir)
-        purge_mod(name,data['version']) if Dir.exists?(target_dir)
+        FileUtils.mkdir(moddir) unless Dir.exist?(moddir)
+        purge_mod(name, data['version']) if Dir.exist?(tardir)
 
-        repo = Rugged::Repository.clone_at(data['source'], target_dir)
+        repo = Rugged::Repository.clone_at(data['source'], tardir)
         repo.checkout(data['version'])
-        @logger.debug('Pem::deploy_mod') {"#{name} @ #{data['version']} checked out successfully"}
+        @logger.debug('Pem::deploy_mod') { "#{name} @ #{data['version']} checked out successfully" }
       rescue => err
-        Pem::log_error(err,@logger)
+        Pem.log_error(err, @logger)
         raise(err)
       end
     end
@@ -122,28 +123,28 @@ class Pem
   #
   # Delete a module from global module dir
   #
-  def purge_mod(name,version)
-    target_dir = "#{@conf['mod_dir']}/#{name}/#{version}"
+  def purge_mod(name, version)
+    tardir = "#{@conf['mod_dir']}/#{name}/#{version}"
 
-    @logger.debug('Pem::purge_mod') {"Purging module #{name} @ #{version}"}
+    @logger.debug('Pem::purge_mod') { "Purging module #{name} @ #{version}" }
 
     begin
-      FileUtils.rm_rf(target_dir)
+      FileUtils.rm_rf(tardir)
     rescue => err
-      Pem::log_error(err,@logger)
+      Pem.log_error(err, @logger)
       raise(err)
     end
 
-    @logger.debug('Pem::purge_mod') {"Successfully purged module #{name} @ #{version}"}
+    @logger.debug('Pem::purge_mod') { "Successfully purged module #{name} @ #{version}" }
   end
 
   #
   # Get all available versions of a given modules
   #
-  def get_mod_versions(mod)
-   versions = []
+  def mod_versions(mod)
+    versions = []
 
-    Pathname.new(mod).children.select { |f| f.directory? }.each do |m|
+    Pathname.new(mod).children.select(&:directory?).each do |m|
       versions << m.basename.to_s
     end
 
@@ -153,60 +154,57 @@ class Pem
   #
   # Retrieve all global modules that have been deployed
   #
-  def get_modules
+  def modules
     modules = {}
 
     begin
-      mods = Pathname.new(@conf['mod_dir']).children.select { |c| c.directory? }
+      mods = Pathname.new(@conf['mod_dir']).children.select(&:directory?)
 
       mods.each do |m|
-        modules[m.basename.to_s] = get_mod_versions(m)
+        modules[m.basename.to_s] = mod_versions(m)
       end
     rescue => err
-      Pem::log_error(err,@logger)
+      Pem.log_error(err, @logger)
       raise(err)
     end
 
     modules
   end
 
-
   #
   # Retrieve all envs
   #
-  def get_envs
-    begin
-      return Pathname.new(@conf['envdir']).children.select { |e| e.directory? }.map { |e| e.basename.to_s }
-    rescue => err
-      Pem::log_error(err,@logger)
-      raise(err)
-    end
+  def show_envs
+    return Pathname.new(@conf['envdir']).children.select(&:directory?).map { |e| e.basename.to_s }
+  rescue => err
+    Pem.log_error(err, @logger)
+    raise(err)
   end
 
   #
   # Retrieve all envs with details
   #
-  def get_envs_details
-    envs = {}
-    get_envs.each do |e|
-      z = Pem_env.new(e,self)
-      envs[e] = z.get_mods
+  def envs_details
+    current_envs = {}
+    show_envs.each do |e|
+      z = PemEnv.new(e, self)
+      current_envs[e] = z.mods
     end
 
-    envs
+    current_envs
   end
 
   #
   # Refresh @envs instance var with latest envs
   #
   def refresh_envs
-    @envs = get_envs_details
+    @envs = envs_details
   end
 
   #
   # Compare Envs
   #
-  def compare_envs(env1,env2)
+  def compare_envs(env1, env2)
     diffs = {}
     e1 = @envs[env1]
     e2 = @envs[env2]
@@ -215,9 +213,7 @@ class Pem
     shared_mods = ((e1.keys + e2.keys) - uniq_mods).uniq
 
     shared_mods.each do |s|
-      if e1[s] != e2[s]
-        diffs[s] = { env1 => e1[s], env2 => e2[s] }
-      end
+      diffs[s] = { env1 => e1[s], env2 => e2[s] } if e1[s] != e2[s]
     end
 
     uniq_mods.each do |u|
@@ -234,38 +230,38 @@ class Pem
   #
   # Filesync handling
   #
-  def filesync_deploy(logger)
-    @logger.debug('Pem::filesync_deploy') {"starting filesync deploy"}
+  def filesync_deploy(_logger)
+    @logger.debug('Pem::filesync_deploy') { 'starting filesync deploy' }
 
     ssl_options = {
       'client_cert' => OpenSSL::X509::Certificate.new(File.read(@conf['filesync_cert'])),
       'client_key'  => OpenSSL::PKey::RSA.new(File.read(@conf['filesync_cert_key'])),
-      'ca_file'     => @conf['filesync_ca_cert']
+      'ca_file'     => @conf['filesync_ca_cert'],
     }
 
-    conn = Faraday.new(:url => "https://#{@conf['master']}:8140", ssl: ssl_options) do |faraday|
+    conn = Faraday.new(url: "https://#{@conf['master']}:8140", ssl: ssl_options) do |faraday|
       faraday.request :json
       faraday.options[:timeout] = 300
       faraday.adapter Faraday.default_adapter
     end
 
-    conn.post   '/file-sync/v1/commit', { "commit-all" => true }
-    @logger.debug('Pem::filesync_deploy') {"Hitting filesync commit endpoint..."}
+    conn.post '/file-sync/v1/commit', 'commit-all' => true
+    @logger.debug('Pem::filesync_deploy') { 'Hitting filesync commit endpoint...' }
 
-    conn.post   '/file-sync/v1/force-sync'
-    @logger.debug('Pem::filesync_deploy') {"Hitting filesync force-sync endpoint..."}
+    conn.post '/file-sync/v1/force-sync'
+    @logger.debug('Pem::filesync_deploy') { 'Hitting filesync force-sync endpoint...' }
 
     conn.delete '/puppet-admin-api/v1/environment-cache'
-    @logger.debug('Pem::filesync_deploy') {"Hitting puppet-admin-api env endpoint..."}
+    @logger.debug('Pem::filesync_deploy') { 'Hitting puppet-admin-api env endpoint...' }
 
-    @logger.debug('Pem::filesync_deploy') {"completed filesync deploy"}
+    @logger.debug('Pem::filesync_deploy') { 'completed filesync deploy' }
   end
 
   #
   # Expose global error logging method
   #
-  def self.log_error(err,logger)
-    logger.fatal(caller_locations(1,1)[0].label) {"Caught exception; exiting"}
-    logger.fatal("\n"+err.to_s)
+  def self.log_error(err, logger)
+    logger.fatal(caller_locations(1, 1)[0].label) { 'Caught exception; exiting' }
+    logger.fatal("\n" + err.to_s)
   end
 end
