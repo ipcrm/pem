@@ -7,7 +7,7 @@ require 'faraday'
 raise('Supply location for puppetfile!') unless ARGV[0]
 raise('Supply name for new env!') unless ARGV[1]
 
-conn = Faraday.new(url: 'http://localhost:4567') do |faraday|
+conn = Faraday.new(url: 'http://localhost:9292') do |faraday|
   faraday.request :json
   faraday.adapter Faraday.default_adapter
 end
