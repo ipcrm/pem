@@ -2,3 +2,5 @@
 *.key
 config.yml
 todo
+/doc
+.yardoc/

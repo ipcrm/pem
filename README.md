@@ -11,7 +11,8 @@ bundle exec rerun rackup
 
 ## YARD Docs (Including API SPEC)
 ```
-yard server
+bundle exec yardoc
+bundle exec yard server
 ```
 
 ## Deploy Global Module
