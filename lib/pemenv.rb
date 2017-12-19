@@ -70,7 +70,7 @@ class PemEnv
         # TODO: Need to add environment.conf setup
 
         set_owner
-        @pem.filesync_deploy(@logger)
+        @pem.filesync_deploy
         @logger.debug('PemEnv::deploy') { "pem_env::deploy successfully created #{@location} " }
       rescue => err
         Pem.log_error(err, @logger)
@@ -186,6 +186,6 @@ class PemEnv
       raise(err)
     end
 
-    @pem.filesync_deploy(logger)
+    @pem.filesync_deploy
   end
 end
