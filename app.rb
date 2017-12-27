@@ -55,7 +55,7 @@ class PemApp < Sinatra::Base
         pem.deploy_mod(m, v)
       end
       { 'status' => 'successful' }.to_json
-    rescue
+    rescue StandardError
       { 'status' => 'failed' }.to_json
     end
   end
@@ -108,7 +108,7 @@ class PemApp < Sinatra::Base
     begin
       e.deploy(data)
       { 'status' => 'successful' }.to_json
-    rescue
+    rescue StandardError
       { 'status' => 'failed' }.to_json
     end
   end

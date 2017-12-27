@@ -44,7 +44,7 @@ class Pem
     conf['mod_dir'] = "#{conf['basedir']}/modules"
 
     return conf
-  rescue
+  rescue StandardError
     err = 'Missing config file, or required configuration values - check config.yml'
     Pem.log_error(err, @logger)
     raise(err)
@@ -59,7 +59,7 @@ class Pem
       FileUtils.mkdir(@conf['basedir']) unless Dir.exist?(@conf['basedir'])
       FileUtils.mkdir(@conf['mod_dir']) unless Dir.exist?(@conf['mod_dir'])
       FileUtils.mkdir(@conf['envdir'])  unless Dir.exist?(@conf['envdir'])
-    rescue => err
+    rescue StandardError => err
       Pem.log_error(err, @logger)
       raise(err)
     end
@@ -101,7 +101,7 @@ class Pem
         end
 
         @logger.debug('Pem::deploy_mod') { "pem::deploy_mod deploy #{name} @ #{data['version']} succeeded" }
-      rescue => err
+      rescue StandardError => err
         Pem.log_error(err, @logger)
         raise(err)
       end
@@ -117,7 +117,7 @@ class Pem
         repo = Rugged::Repository.clone_at(data['source'], tardir)
         repo.checkout(data['version'])
         @logger.debug('Pem::deploy_mod') { "#{name} @ #{data['version']} checked out successfully" }
-      rescue => err
+      rescue StandardError => err
         Pem.log_error(err, @logger)
         raise(err)
       end
@@ -136,7 +136,7 @@ class Pem
 
     begin
       FileUtils.rm_rf(tardir)
-    rescue => err
+    rescue StandardError => err
       Pem.log_error(err, @logger)
       raise(err)
     end
@@ -172,7 +172,7 @@ class Pem
       mods.each do |m|
         modules[m.basename.to_s] = mod_versions(m)
       end
-    rescue => err
+    rescue StandardError => err
       Pem.log_error(err, @logger)
       raise(err)
     end
@@ -185,7 +185,7 @@ class Pem
   # @return [Array] A list of all deployed environment names
   def show_envs
     return Pathname.new(@conf['envdir']).children.select(&:directory?).map { |e| e.basename.to_s }
-  rescue => err
+  rescue StandardError => err
     Pem.log_error(err, @logger)
     raise(err)
   end

@@ -34,7 +34,7 @@ class PemEnv
 
     begin
       FileUtils.chown_R(user, group, @location)
-    rescue => err
+    rescue StandardError => err
       Pem.log_error(err, @logger)
       raise(err)
     end
@@ -51,7 +51,7 @@ class PemEnv
         @logger.info('PemEnv::create') { "pem_env::deploy redeploying #{@location}" }
         PemEnv.destroy(@location, @logger)
         deploy(modules)
-      rescue => err
+      rescue StandardError => err
         Pem.log_error(err, @logger)
         raise(err)
       end
@@ -72,7 +72,7 @@ class PemEnv
         set_owner
         @pem.filesync_deploy
         @logger.debug('PemEnv::deploy') { "pem_env::deploy successfully created #{@location} " }
-      rescue => err
+      rescue StandardError => err
         Pem.log_error(err, @logger)
         raise(err)
       end
@@ -99,7 +99,7 @@ class PemEnv
         Pem.log_error(err, @logger)
         throw(err)
       end
-    rescue => err
+    rescue StandardError => err
       Pem.log_error(err, @logger)
       raise(err)
     end
@@ -116,7 +116,7 @@ class PemEnv
       mods.each do |m|
         rmods[m.basename.to_s] = mod_ver(m.basename.to_s)
       end
-    rescue => err
+    rescue StandardError => err
       Pem.log_error(err, @logger)
       raise(err)
     end
@@ -143,7 +143,7 @@ class PemEnv
                            mod.version
                          end
       end
-    rescue => err
+    rescue StandardError => err
       Pem.log_error(err, @logger)
       raise(err) unless puppetfile.load
     end
@@ -167,7 +167,7 @@ class PemEnv
       mods = load_puppetfile_mods
       return mods[mod]
     end
-  rescue => err
+  rescue StandardError => err
     Pem.log_error(err, @logger)
     raise(err)
   end
@@ -181,7 +181,7 @@ class PemEnv
     begin
       logger.debug('PemEnv::create') { "pem_env::deploy removing #{location}" }
       FileUtils.rm_rf(location)
-    rescue => err
+    rescue StandardError => err
       Pem.log_error(err, logger)
       raise(err)
     end
