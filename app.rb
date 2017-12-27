@@ -12,6 +12,12 @@ class PemApp < Sinatra::Base
   # Create a new PEM instance
   pem = Pem.new(logger)
 
+  set :public_folder, 'pem_ui'
+
+  get "/" do
+    redirect '/index.html'
+  end
+
   # List all envs
   #
   # Request
