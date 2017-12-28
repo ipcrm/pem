@@ -177,4 +177,21 @@ class PemApp < Sinatra::Base
     data = JSON.parse(request.body.read)
     pem.compare_envs(data[0], data[1]).to_json
   end
+
+  # Find enviornment a module is deployed to
+  #
+  # Request
+  #  POST /find_mod_envs
+  #  {
+  #    "myorg-ntp": "e93a55d",
+  #  }
+  # Response
+  #   {
+  #     "status": true, "envs": [ "test1", "test2" ]
+  #   }
+  post '/find_mod_envs' do
+    content_type 'application/json'
+    data = JSON.parse(request.body.read)
+    pem.find_module(data.keys[0], data[ data.keys[0] ]).to_json
+  end
 end

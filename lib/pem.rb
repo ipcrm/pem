@@ -134,7 +134,11 @@ class Pem
 
     @logger.debug('Pem::purge_mod') { "Purging module #{name} @ #{version}; location #{tardir}" }
 
-    check_mod_use(name, version)
+    mod_use = check_mod_use(name, version)
+    if mod_use[:status]
+      raise "Cannot delete global module #{name}, in use in enviornment #{status[:envs]}"
+    end
+
     FileUtils.rm_rf(tardir)
 
     @logger.debug('Pem::purge_mod') { "Successfully purged module #{name} @ #{version}" }
@@ -148,15 +152,22 @@ class Pem
   # If the module is found in an enviornment it will raise an error
   #
   # @param [String] name the name of the module in <author>-<name> format
+  # @param [String] version the version string of the module in question
+  # @return [Hash] key status equals true/false (boolean) and envs hash will be an array containing 0 or more envs
   #
   def check_mod_use(name, version)
+    e = []
+
     @envs.each do |k, v|
       next unless v.keys.include?(name) && v[name] == version
-      raise "Cannot delete global module #{name}, in use in enviornment #{k}"
+      e << k
     end
-  rescue StandardError => err
-    Pem.log_error(err, @logger)
-    raise(err)
+
+    if e.any?
+      { status: true, envs: e }
+    else
+      { status: false, envs: e }
+    end
   end
 
   # Get all available versions of a given modules
@@ -251,6 +262,23 @@ class Pem
     end
 
     diffs
+  end
+
+  # Find what environments a given module/version is deployed to
+  #
+  # @param [String] name the name of the module in <author>-<name> format
+  # @param [String] version the version string of the module in question
+  # @return [Array] list of enviornments this module is deployed to
+  #
+  def find_module(name, version)
+    e = []
+
+    @envs.each do |k, v|
+      next unless v.keys.include?(name) && v[name] == version
+      e << k
+    end
+
+    e
   end
 
   # Filesync handling
