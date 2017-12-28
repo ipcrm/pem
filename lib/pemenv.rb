@@ -11,7 +11,6 @@ require 'r10k/puppetfile'
 # Class for managing all enviornment related activities
 class PemEnv
   attr_reader :location
-  attr_reader :modules
 
   # Initialize
   #

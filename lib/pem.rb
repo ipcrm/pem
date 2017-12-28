@@ -50,11 +50,6 @@ class Pem
     raise(err)
   end
 
-  # Determine if module and version is in use in any environment
-  #
-  # @param [String] name the name of the module
-  #
-
   # Build global dirs
   #
   def setup
@@ -139,14 +134,29 @@ class Pem
 
     @logger.debug('Pem::purge_mod') { "Purging module #{name} @ #{version}; location #{tardir}" }
 
-    begin
-      FileUtils.rm_rf(tardir)
-    rescue StandardError => err
-      Pem.log_error(err, @logger)
-      raise(err)
-    end
+    check_mod_use(name, version)
+    FileUtils.rm_rf(tardir)
 
     @logger.debug('Pem::purge_mod') { "Successfully purged module #{name} @ #{version}" }
+  rescue StandardError => err
+    Pem.log_error(err, @logger)
+    raise(err)
+  end
+
+  # Determine if module and version is in use in any environment.
+  #
+  # If the module is found in an enviornment it will raise an error
+  #
+  # @param [String] name the name of the module in <author>-<name> format
+  #
+  def check_mod_use(name, version)
+    @envs.each do |k, v|
+      next unless v.keys.include?(name) && v[name] == version
+      raise "Cannot delete global module #{name}, in use in enviornment #{k}"
+    end
+  rescue StandardError => err
+    Pem.log_error(err, @logger)
+    raise(err)
   end
 
   # Get all available versions of a given modules
