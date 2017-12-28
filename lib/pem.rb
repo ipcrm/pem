@@ -134,11 +134,6 @@ class Pem
 
     @logger.debug('Pem::purge_mod') { "Purging module #{name} @ #{version}; location #{tardir}" }
 
-    mod_use = check_mod_use(name, version)
-    if mod_use[:status]
-      raise "Cannot delete global module #{name}, in use in enviornment #{status[:envs]}"
-    end
-
     FileUtils.rm_rf(tardir)
 
     @logger.debug('Pem::purge_mod') { "Successfully purged module #{name} @ #{version}" }
@@ -164,9 +159,9 @@ class Pem
     end
 
     if e.any?
-      { status: true, envs: e }
+      { 'status' => true, 'envs' => e }
     else
-      { status: false, envs: e }
+      { 'status' => false, 'envs' => e }
     end
   end
 

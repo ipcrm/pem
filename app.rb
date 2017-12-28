@@ -73,18 +73,25 @@ class PemApp < Sinatra::Base
   #   {
   #     "status":"successful"
   #   }
+  #   {
+  #     "status":"failed", "envs": ["test3"]
+  #   }
   #
   post '/purge_mod' do
     content_type 'application/json'
     data = JSON.parse(request.body.read)
 
+    m = data.keys[0]
+    v = data[m]['version']
+
     begin
-      data.each do |m, v|
+      mod_status = pem.check_mod_use(m, v)
+      if mod_status['status']
+        { 'status' => 'failed', 'envs' => mod_status['envs'] }.to_json
+      else
         pem.purge_mod(m, v['version'])
+        { 'status' => 'successful' }.to_json
       end
-      { 'status' => 'successful' }.to_json
-    rescue StandardError
-      { 'status' => 'failed' }.to_json
     end
   end
 
