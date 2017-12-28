@@ -66,6 +66,41 @@ class PemApp < Sinatra::Base
     end
   end
 
+  # Delete a global module
+  #
+  # Request
+  #  POST /delete_mod
+  #  {
+  #     "myorg-ntp": {
+  #       "version": "e93a55d"
+  #     }
+  #   }
+  # Response
+  #   {
+  #     "status":"successful"
+  #   }
+  #   {
+  #     "status":"failed", "envs": ["test3"]
+  #   }
+  #
+  post '/purge_mod' do
+    content_type 'application/json'
+    data = JSON.parse(request.body.read)
+
+    m = data.keys[0]
+    v = data[m]['version']
+
+    begin
+      mod_status = pem.check_mod_use(m, v)
+      if mod_status['status']
+        { 'status' => 'failed', 'envs' => mod_status['envs'] }.to_json
+      else
+        pem.purge_mod(m, v['version'])
+        { 'status' => 'successful' }.to_json
+      end
+    end
+  end
+
   # Get global modules
   #
   # Request
@@ -154,5 +189,22 @@ class PemApp < Sinatra::Base
     content_type 'application/json'
     data = JSON.parse(request.body.read)
     pem.compare_envs(data[0], data[1]).to_json
+  end
+
+  # Find enviornment a module is deployed to
+  #
+  # Request
+  #  POST /find_mod_envs
+  #  {
+  #    "myorg-ntp": "e93a55d",
+  #  }
+  # Response
+  #   {
+  #     "status": true, "envs": [ "test1", "test2" ]
+  #   }
+  post '/find_mod_envs' do
+    content_type 'application/json'
+    data = JSON.parse(request.body.read)
+    pem.find_module(data.keys[0], data[ data.keys[0] ]).to_json
   end
 end
