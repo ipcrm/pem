@@ -7,7 +7,9 @@ require 'rugged'
 require 'pathname'
 require 'sinatra'
 require 'openssl'
+require 'zlib'
 require 'minitar'
+require 'tempfile'
 require "#{File.dirname(__FILE__)}/pemenv"
 
 # PEM Main class
@@ -267,6 +269,32 @@ class Pem
     end
 
     e
+  end
+
+  # Create an archive of an enviornment
+  #
+  # @param [String] name the name of the enviornment
+  # @return [File] a file handle of the archive created
+  #
+  def create_env_archive(name)
+    if !@envs.keys.include?(name)
+      err = 'Invalid environment name supplied'
+      Pem.log_error(err, @logger)
+      raise err
+    else
+      begin
+        tmpfile = Tempfile.new
+
+        Dir.chdir(@conf['envdir']) do
+          Minitar.pack(name, Zlib::GzipWriter.new(tmpfile))
+        end
+
+        return tmpfile
+      rescue StandardError => err
+        Pem.log_error(err, @logger)
+        raise err
+      end
+    end
   end
 
   # Filesync handling

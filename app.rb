@@ -240,4 +240,17 @@ class PemApp < Sinatra::Base
     data = JSON.parse(request.body.read)
     pem.find_module(data.keys[0], data[ data.keys[0] ]).to_json
   end
+
+  # Download copy of environment
+  #
+  # Request
+  #   GET /envs/download/:name
+  # Response
+  #   application/octet-stream file in tar.gz format
+  #
+  get '/envs/download/:name' do
+    tmpfile = pem.create_env_archive(params[:name])
+    f = File.open(tmpfile.path, 'r+')
+    send_file(f, filename: "#{params[:name]}.tar.gz", type: 'Application/octet-stream')
+  end
 end
