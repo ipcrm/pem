@@ -87,6 +87,7 @@ PLATFORMS
   x86_64-darwin-15
 
 DEPENDENCIES
+  minitar
   openssl
   pry
   puppet_forge

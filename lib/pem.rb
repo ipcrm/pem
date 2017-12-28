@@ -7,6 +7,9 @@ require 'rugged'
 require 'pathname'
 require 'sinatra'
 require 'openssl'
+require 'zlib'
+require 'minitar'
+require 'tempfile'
 require "#{File.dirname(__FILE__)}/pemenv"
 
 # PEM Main class
@@ -78,16 +81,16 @@ class Pem
       raise(err)
     end
 
-    case data['type']
-    when 'forge'
-      begin
+    begin
+      tardir = "#{@conf['mod_dir']}/#{name}/#{data['version']}"
+      moddir = "#{@conf['mod_dir']}/#{name}"
+
+      FileUtils.mkdir(moddir) unless Dir.exist?(moddir)
+      purge_mod(name, data['version']) if Dir.exist?(tardir)
+
+      case data['type']
+      when 'forge'
         PuppetForge.user_agent = 'pem/1.0.0'
-
-        tardir = "#{@conf['mod_dir']}/#{name}/#{data['version']}"
-        moddir = "#{@conf['mod_dir']}/#{name}"
-
-        FileUtils.mkdir(moddir) unless Dir.exist?(moddir)
-        purge_mod(name, data['version']) if Dir.exist?(tardir)
 
         release_slug = "#{name}-#{data['version']}"
         release_tarball = release_slug + '.tar.gz'
@@ -99,28 +102,20 @@ class Pem
           release.verify(Pathname(release_tarball))
           PuppetForge::Unpacker.unpack(release_tarball, tardir, '/tmp')
         end
-
         @logger.debug('Pem::deploy_mod') { "pem::deploy_mod deploy #{name} @ #{data['version']} succeeded" }
-      rescue StandardError => err
-        Pem.log_error(err, @logger)
-        raise(err)
-      end
 
-    when 'git'
-      begin
-        tardir = "#{@conf['mod_dir']}/#{name}/#{data['version']}"
-        moddir = "#{@conf['mod_dir']}/#{name}"
-
-        FileUtils.mkdir(moddir) unless Dir.exist?(moddir)
-        purge_mod(name, data['version']) if Dir.exist?(tardir)
-
+      when 'git'
         repo = Rugged::Repository.clone_at(data['source'], tardir)
         repo.checkout(data['version'])
         @logger.debug('Pem::deploy_mod') { "#{name} @ #{data['version']} checked out successfully" }
-      rescue StandardError => err
-        Pem.log_error(err, @logger)
-        raise(err)
+
+      when 'upload'
+        PuppetForge::Unpacker.unpack(data['file'].path, tardir, '/tmp')
+        @logger.debug('Pem::deploy_mod') { "pem::deploy_mod deploy #{name} @ #{data['version']} succeeded" }
       end
+    rescue StandardError => err
+      Pem.log_error(err, @logger)
+      raise(err)
     end
   end
 
@@ -274,6 +269,32 @@ class Pem
     end
 
     e
+  end
+
+  # Create an archive of an enviornment
+  #
+  # @param [String] name the name of the enviornment
+  # @return [File] a file handle of the archive created
+  #
+  def create_env_archive(name)
+    if !@envs.keys.include?(name)
+      err = 'Invalid environment name supplied'
+      Pem.log_error(err, @logger)
+      raise err
+    else
+      begin
+        tmpfile = Tempfile.new
+
+        Dir.chdir(@conf['envdir']) do
+          Minitar.pack(name, Zlib::GzipWriter.new(tmpfile))
+        end
+
+        return tmpfile
+      rescue StandardError => err
+        Pem.log_error(err, @logger)
+        raise err
+      end
+    end
   end
 
   # Filesync handling

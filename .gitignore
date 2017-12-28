@@ -4,3 +4,4 @@ config.yml
 todo
 /doc
 .yardoc/
+*.swp
