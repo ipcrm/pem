@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'sinatra'
+require 'tempfile'
 require "#{File.dirname(__FILE__)}/lib/pem"
 require "#{File.dirname(__FILE__)}/lib/pemenv"
 
@@ -57,6 +58,44 @@ class PemApp < Sinatra::Base
       { 'status' => 'successful' }.to_json
     rescue StandardError
       { 'status' => 'failed' }.to_json
+    end
+  end
+
+  # Upload a global module from archive
+  #
+  # The :name must be in a specific format, <author>-<module name>-<version>
+  # The body of the request needs to be a tar gz file of the module.
+  # Typically this would be the result of building the archive via `puppet module build`
+  #
+  # Request
+  #   PUT /upload_mod/example-ntp-0.0.3
+  #     Binary (tar.gz file that results from puppet module build)
+  # Response
+  #  {"status":"successful"}
+  #
+  put '/upload_mod/:name' do
+    if params[:name].count('-') == 2
+
+      author, name, version = params[:name].chomp.split('-')
+
+      begin
+        tf = Tempfile.new("#{params[:name]}.tar.gz")
+        tf.write(request.body.read)
+        ftype = `file --brief --mime-type #{tf.path}`.strip
+
+        if ftype == 'application/x-gzip'
+          data = { 'version' => version, 'type' => 'upload', 'file' => tf }
+          pem.deploy_mod("#{author}-#{name}", data)
+          { 'status' => 'successful' }.to_json
+        else
+          { 'status' => 'failed', 'message' => 'Invalid archive supplied, expected a tar.gz file' }.to_json
+        end
+      rescue StandardError => e
+        { 'status' => 'failed', 'message' => e }.to_json
+      end
+
+    else
+      { 'status' => 'failed', 'message' => 'Invalid name supplied, expected <author>-<module_name>-<version>' }.to_json
     end
   end
 
