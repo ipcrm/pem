@@ -248,7 +248,7 @@ class PemApp < Sinatra::Base
   # Response
   #   application/octet-stream file in tar.gz format
   #
-  get '/envs/download/:name' do
+  get '/envs/:name/download' do
     tmpfile = pem.create_env_archive(params[:name])
     f = File.open(tmpfile.path, 'r+')
     send_file(f, filename: "#{params[:name]}.tar.gz", type: 'Application/octet-stream')
