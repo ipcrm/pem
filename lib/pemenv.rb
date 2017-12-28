@@ -30,7 +30,7 @@ class PemEnv
   #
   def set_owner
     user =  @conf['user'] || Process.uid
-    group = @conf['user'] || Process.gid
+    group = @conf['group'] || Process.gid
 
     begin
       FileUtils.chown_R(user, group, @location)
@@ -49,7 +49,7 @@ class PemEnv
     if File.directory?(@location)
       begin
         @logger.info('PemEnv::create') { "pem_env::deploy redeploying #{@location}" }
-        PemEnv.destroy(@location, @logger)
+        destroy(@location, @logger)
         deploy(modules)
       rescue StandardError => err
         Pem.log_error(err, @logger)
@@ -94,6 +94,9 @@ class PemEnv
       amods = @pem.modules
       if amods.keys.include?(name) && amods[name].include?(version)
         FileUtils.cp_r("#{@conf['mod_dir']}/#{name}/#{version}", "#{location}/#{mod_name}")
+        File.open("#{location}/#{mod_name}/.pemversion", 'w+') do |file|
+          file.write({ 'version' => version, 'name' => name }.to_yaml)
+        end
       else
         err = "Unkown module or version supplied for #{name} @ #{version} "
         Pem.log_error(err, @logger)
@@ -114,7 +117,8 @@ class PemEnv
     begin
       mods = Pathname.new("#{@location}/modules").children.select(&:directory?)
       mods.each do |m|
-        rmods[m.basename.to_s] = mod_ver(m.basename.to_s)
+        md = mod_details(m.basename.to_s)
+        rmods[ md['name'] ] = md['version']
       end
     rescue StandardError => err
       Pem.log_error(err, @logger)
@@ -156,17 +160,9 @@ class PemEnv
   # @param [String] mod the name of the module to check version of
   # @return [String] the version string of the deployed version
   #
-  def mod_ver(mod)
-    if File.exist?("#{@location}/modules/#{mod}/.git")
-      r = Rugged::Repository.discover("#{@location}/modules/#{mod}/.git").head
-      return r.target.oid[0, 6]
-    elsif File.exist?("#{@location}/modules/#{mod}/metadata.json")
-      return JSON.parse(File.read("#{@location}/modules/#{mod}/metadata.json"))['version']
-    else
-      # Temp workaround for testing on masters still using code-manager
-      mods = load_puppetfile_mods
-      return mods[mod]
-    end
+  def mod_details(mod)
+    deets = YAML.safe_load(File.open("#{@location}/modules/#{mod}/.pemversion"))
+    return { 'version' => deets['version'], 'name' => deets['name'] }
   rescue StandardError => err
     Pem.log_error(err, @logger)
     raise(err)
@@ -177,7 +173,7 @@ class PemEnv
   # @param [String] location the location of the environment to be purged
   # @param [Object] logger the logger object to write messages to
   #
-  def self.destroy(location, logger)
+  def destroy(location, logger)
     begin
       logger.debug('PemEnv::create') { "pem_env::deploy removing #{location}" }
       FileUtils.rm_rf(location)

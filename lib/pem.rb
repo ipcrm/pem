@@ -50,6 +50,11 @@ class Pem
     raise(err)
   end
 
+  # Determine if module and version is in use in any environment
+  #
+  # @param [String] name the name of the module
+  #
+
   # Build global dirs
   #
   def setup
