@@ -60,6 +60,34 @@ class PemApp < Sinatra::Base
     end
   end
 
+  # Delete a global module
+  #
+  # Request
+  #  POST /delete_mod
+  #  {
+  #     "myorg-ntp": {
+  #       "version": "e93a55d"
+  #     }
+  #   }
+  # Response
+  #   {
+  #     "status":"successful"
+  #   }
+  #
+  post '/purge_mod' do
+    content_type 'application/json'
+    data = JSON.parse(request.body.read)
+
+    begin
+      data.each do |m, v|
+        pem.purge_mod(m, v['version'])
+      end
+      { 'status' => 'successful' }.to_json
+    rescue StandardError
+      { 'status' => 'failed' }.to_json
+    end
+  end
+
   # Get global modules
   #
   # Request

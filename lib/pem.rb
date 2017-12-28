@@ -132,7 +132,7 @@ class Pem
   def purge_mod(name, version)
     tardir = "#{@conf['mod_dir']}/#{name}/#{version}"
 
-    @logger.debug('Pem::purge_mod') { "Purging module #{name} @ #{version}" }
+    @logger.debug('Pem::purge_mod') { "Purging module #{name} @ #{version}; location #{tardir}" }
 
     begin
       FileUtils.rm_rf(tardir)
