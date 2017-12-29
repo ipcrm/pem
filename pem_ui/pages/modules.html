@@ -1,17 +1,15 @@
 <h2>Available Modules</h1>
-<table id="module-list" class="table">
+<table id="module-list" class="table table-striped table-hover">
   <thead>
     <tr>
       <th>Module</th>
       <th>Versions</th>
     </tr>
   </thead>
-  <tbody ng-repeat="(name, version) in modules">
-    <tr>
-      <td ng-if="$odd" style="background-color:#f1f1f1">{{ name }}</td>
-      <td ng-if="$even">{{ name }}</td>
-      <td ng-if="$odd" style="background-color:#f1f1f1">{{ version.join(', ') }}</td>
-      <td ng-if="$even">{{ version.join(', ') }}</td>
+  <tbody>
+    <tr ng-repeat="(name, version) in modules">
+      <td>{{ name }}</td>
+      <td>{{ version.join(', ') }}</td>
     </tr>
   </tbody>
 </table>
