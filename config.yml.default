@@ -5,6 +5,16 @@ basedir: /etc/puppetlabs/code-staging
 # example: master.inf.puppet.vm
 master:
 
+# PEM Hostname and port - injected into the config for js
+## Likely development values
+pem_host: localhost
+pem_port: 9292
+
+## Likely prod values
+#pem_host: master.inf.puppet.vm
+#pem_port: 9292
+
+
 # Master certificate; used for filesync auth
 # /etc/puppetlabs/puppet/ssl/certs/<FQDN>.pem
 filesync_cert:
