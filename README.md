@@ -4,9 +4,16 @@
 - Copy config.yml.default to config.yml
 - Edit config.yml as needed for your environment
 
+For Development, automatic restarts on file changes
 ```
 bundle install
-bundle exec rerun rackup
+bundle exec guard
+```
+
+For running long-term
+```
+bundle install
+bundle exec rackup
 ```
 
 ## YARD Docs (Including API SPEC)

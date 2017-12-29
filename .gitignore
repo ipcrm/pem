@@ -1,7 +1,9 @@
 *.crt
 *.key
 config.yml
+config.js
 todo
 /doc
 .yardoc/
 *.swp
+.bundle

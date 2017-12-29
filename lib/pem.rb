@@ -36,7 +36,7 @@ class Pem
   # @return [Hash] Configuration hash
   #
   def load_config
-    conf = YAML.load_file('config.yml')
+    conf = YAML.load_file(File.expand_path('../config.yml', File.dirname(__FILE__)))
 
     unless %w[basedir master filesync_cert filesync_cert_key filesync_ca_cert].all? { |s| conf.key?(s) && !conf[s].nil? }
       Pem.log_error('Missing required settings in config.yml', @logger)
@@ -316,14 +316,17 @@ class Pem
       faraday.adapter Faraday.default_adapter
     end
 
-    conn.post '/file-sync/v1/commit', 'commit-all' => true
     @logger.debug('Pem::filesync_deploy') { 'Hitting filesync commit endpoint...' }
+    conn.post '/file-sync/v1/commit', 'commit-all' => true
+    @logger.debug('Pem::filesync_deploy') { 'Done.' }
 
-    conn.post '/file-sync/v1/force-sync'
     @logger.debug('Pem::filesync_deploy') { 'Hitting filesync force-sync endpoint...' }
+    conn.post '/file-sync/v1/force-sync'
+    @logger.debug('Pem::filesync_deploy') { 'Done.' }
 
-    conn.delete '/puppet-admin-api/v1/environment-cache'
     @logger.debug('Pem::filesync_deploy') { 'Hitting puppet-admin-api env endpoint...' }
+    conn.delete '/puppet-admin-api/v1/environment-cache'
+    @logger.debug('Pem::filesync_deploy') { 'Done.' }
 
     @logger.debug('Pem::filesync_deploy') { 'completed filesync deploy' }
   end

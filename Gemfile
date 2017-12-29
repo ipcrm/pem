@@ -3,13 +3,17 @@
 source 'https://rubygems.org'
 
 gem 'openssl'
-gem 'pry'
 gem 'puppet_forge'
 gem 'r10k'
-gem 'rerun'
-gem 'rubocop'
 gem 'rugged', '0.25.1.1'
 gem 'sinatra'
-gem 'yard'
-gem 'yard-sinatra'
 gem 'minitar'
+
+group :development do
+  gem 'pry'
+  gem 'rubocop'
+  gem 'yard'
+  gem 'yard-sinatra'
+  gem "guard"
+  gem "guard-rack"
+end
