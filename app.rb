@@ -19,6 +19,12 @@ class PemApp < Sinatra::Base
     redirect '/index.html'
   end
 
+  get %r{/assets/(.*)} do
+    filename = params[:captures].first
+    fullpath = "#{File.dirname(__FILE__)}/pem_ui/#{filename}"
+    send_file fullpath
+  end
+
   # List all envs
   #
   # Request

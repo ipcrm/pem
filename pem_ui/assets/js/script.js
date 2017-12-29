@@ -12,19 +12,19 @@ pemApp.config(function($routeProvider) {
 
         // route for the home page
         .when('/environments', {
-            templateUrl : 'pages/environments.html',
+            templateUrl : 'assets/pages/environments.html',
             controller  : 'envController'
         })
 
         // route for the modules page
         .when('/modules', {
-            templateUrl : 'pages/modules.html',
+            templateUrl : 'assets/pages/modules.html',
             controller  : 'moduleController'
         })
 
         // route for the mod_detail page
         .when('/mod_detail/:name/:version', {
-            templateUrl : 'pages/mod_detail.html',
+            templateUrl : 'assets/pages/mod_detail.html',
             controller  : 'mod_detailController'
         })
 
