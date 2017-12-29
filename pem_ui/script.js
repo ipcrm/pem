@@ -16,19 +16,33 @@ pemApp.config(function($routeProvider) {
             controller  : 'envController'
         })
 
-        // route for the about page
+        // route for the modules page
         .when('/modules', {
             templateUrl : 'pages/modules.html',
             controller  : 'moduleController'
         })
 
+        // route for the mod_detail page
+        .when('/mod_detail/:name/:version', {
+            templateUrl : 'pages/mod_detail.html',
+            controller  : 'mod_detailController'
+        })
+
 });
 
-// create the controller and inject Angular's $scope
 pemApp.controller('moduleController', function($scope, $http) {
     $http.get(conn_string + '/modules')
       .then(function(response){
         $scope.modules = response.data
+    });
+});
+
+pemApp.controller('mod_detailController', function($scope, $http, $routeParams) {
+    $http.get(conn_string + '/find_mod_envs/' + $routeParams.name + "/" + $routeParams.version)
+      .then(function(response){
+        $scope.envs = response.data;
+        $scope.name = $routeParams.name;
+        $scope.version = $routeParams.version;
     });
 });
 
@@ -37,4 +51,19 @@ pemApp.controller('envController', function($scope, $http) {
       .then(function(response){
         $scope.envs = response.data
     });
+});
+
+pemApp.directive('backButton', function(){
+    return {
+      restrict: 'A',
+
+      link: function(scope, element, attrs) {
+        element.bind('click', goBack);
+
+        function goBack() {
+          history.back();
+          scope.$apply();
+        }
+      }
+    }
 });

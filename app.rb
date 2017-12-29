@@ -15,7 +15,7 @@ class PemApp < Sinatra::Base
 
   set :public_folder, 'pem_ui'
 
-  get "/" do
+  get '/' do
     redirect '/index.html'
   end
 
@@ -233,18 +233,15 @@ class PemApp < Sinatra::Base
   # Find enviornment a module is deployed to
   #
   # Request
-  #  POST /find_mod_envs
-  #  {
-  #    "myorg-ntp": "e93a55d",
-  #  }
+  #  get /find_mod_envs/:name/:version
+  #
   # Response
   #   {
   #     "status": true, "envs": [ "test1", "test2" ]
   #   }
-  post '/find_mod_envs' do
+  get '/find_mod_envs/:name/:version' do
     content_type 'application/json'
-    data = JSON.parse(request.body.read)
-    pem.find_module(data.keys[0], data[ data.keys[0] ]).to_json
+    pem.find_module(params[:name], params[:version]).to_json
   end
 
   # Download copy of environment

@@ -9,7 +9,10 @@
   <tbody>
     <tr ng-repeat="(name, version) in modules">
       <td>{{ name }}</td>
-      <td>{{ version.join(', ') }}</td>
+      <td>
+        <a href="#!mod_detail/{{name}}/{{v}}"
+          class="btn btn-default" role="button" ng-repeat="v in version">{{ v }}</a>
+      </td>
     </tr>
   </tbody>
 </table>

@@ -1,0 +1,13 @@
+<h3> Module [{{name}}] at version [{{version}}] is in use in the following enviornments:</h2>
+<br />
+<div>
+  <table id="module-list" class="table table-striped table-hover">
+    <tbody>
+      <tr ng-repeat="e in envs">
+        <td>{{ e }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <a href back-button class="btn btn-default" role="button">OK</a>
+</div>
