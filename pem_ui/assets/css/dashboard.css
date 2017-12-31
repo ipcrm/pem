@@ -5,26 +5,91 @@
 /* Angular-ui */
 .nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
 
-/* Move down content because we have a fixed navbar that is 3.5rem tall */
-body {
-}
-
-.container {
-  width: 95%;
-}
-
 /*
  * Typography
  */
-
 h1 {
-  padding-bottom: 9px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #eee;
+ overflow: hidden;
+ text-overflow: ellipsis;
+ white-space: nowrap;
+ color: #444;
+ font-size: 36px;
+ margin-top: 80px;
 }
 
-.env_actions {
-  background-color: #f9f9f9;
-  padding: 10px;
+.env_button_grp {
+  padding-bottom: 15px;
+}
+.main {
+  width:90%;
+  margin: 0px auto 0px auto;
 }
 
+.navbar-fixed-left {
+  width: 180px;
+  position: fixed;
+  border-radius: 0;
+  height: 100%;
+}
+
+.navbar-fixed-left .navbar-nav > li {
+  float: none;  /* Cancel default li float: left */
+  width: 179px;
+  padding-left: 10px; 
+}
+.navbar-fixed-left .navbar-nav > li > a {
+  color: #53d4b0;
+}
+
+.navbar-brand {
+  height: 135px;
+}
+
+.navbar-brand>img {
+  height: 46px;
+  margin-bottom: 15px;
+}
+
+
+.logo_span {
+  color: white;
+/*  margin-left: 30px; */
+}
+
+.container-fluid {
+  padding-left: 180px;
+}
+.navbar-fixed-left + .container {
+  padding-left: 180px;
+}
+
+table {
+  width: 100%;
+  border-spacing: 0;
+  border: 0;
+}
+
+th {
+  border-color: #3d3d3d;
+  border-top: 0;
+  color: #e5e5e5;
+  background-color: #444;
+  text-align: left;
+  vertical-align: top;
+}
+
+.table>tbody>tr>td {
+  display: table-cell;
+  vertical-align: inherit;
+  padding: 10px 14px;
+  font-size: 13px;
+  text-align: left;
+}
+.table>tbody>tr {
+  border-color: #e5e5e5 !important;
+  border-bottom: 1px solid;
+}
+
+.tr_repeat:last-of-type {
+  border: none;
+}

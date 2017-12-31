@@ -5,8 +5,11 @@
 <div>
   <table id="module-list" class="table table-striped table-hover">
     <tbody>
-      <tr ng-repeat="e in envs">
+      <tr ng-repeat="e in envs" ng-if="envs.length > 0">
         <td>{{ e }}</td>
+      </tr>
+      <tr ng-if="envs.length === 0">
+        <td>None found</td>
       </tr>
     </tbody>
   </table>

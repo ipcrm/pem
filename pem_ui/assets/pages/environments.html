@@ -1,14 +1,13 @@
-<div class="jumbotron">
-  <h2>Deployed Code Environments</h2>
-</div>
+<h1>Deployed Code Environments</h1>
+<hr />
 <uib-accordion  close-others="oneAtATime">
   <div uib-accordion-group class="panel-default" heading="{{name}}" ng-repeat="(name,modules) in envs">
-      <div class="env_actions">
-        <a href="/envs/{{name}}/download"
-          class="btn btn-default" role="button">Download</a>
+      <div class="btn-group env_button_grp">
+        <a href="/envs/{{name}}/download" class="btn btn-default" role="button">Compare</a>
+        <a href="/envs/{{name}}/download" class="btn btn-default" role="button">Download</a>
       </div>
       <div class="table-container">
-        <table class="table table-striped table-hover">
+        <table class="table table-hover">
           <thead>
             <tr>
               <th>Module</th>
@@ -16,7 +15,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr ng-repeat="(name, version) in modules">
+            <tr ng-repeat="(name, version) in modules" class="tr_repeat">
               <td>{{ name }}</td>
               <td>
                 <a href="#!mod_detail/{{name}}/{{version}}"

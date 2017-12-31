@@ -1,7 +1,6 @@
-<div class="jumbotron">
-  <h2>Available Modules</h1>
-</div>
-<table id="module-list" class="table table-striped table-hover">
+<h1>Available Modules</h1>
+<hr />
+<table id="module-list" class="table table-hover">
   <thead>
     <tr>
       <th>Module</th>
@@ -9,11 +8,13 @@
     </tr>
   </thead>
   <tbody>
-    <tr ng-repeat="(name, version) in modules">
+    <tr ng-repeat="(name, version) in modules" class="tr_repeat" >
       <td>{{ name }}</td>
       <td>
-        <a href="#!mod_detail/{{name}}/{{v}}"
-          class="btn btn-default" role="button" ng-repeat="v in version">{{ v }}</a>
+        <div class="btn-group">
+          <a href="#!mod_detail/{{name}}/{{v}}"
+            class="btn btn-default" role="button" ng-repeat="v in version">{{ v }}</a>
+        </div>
       </td>
     </tr>
   </tbody>

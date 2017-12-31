@@ -28,6 +28,8 @@ pemApp.config(function($routeProvider) {
             controller  : 'mod_detailController'
         })
 
+        .otherwise({redirectTo: '/environments'});
+
 });
 
 pemApp.controller('moduleController', function($scope, $http) {
