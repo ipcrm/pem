@@ -225,11 +225,16 @@ class PemApp < Sinatra::Base
   #   ]
   # Response
   #   {
-  #     "ntp": {
-  #       "test6": "6.4.1",
-  #       "test7": "6.4.4"
+  #     "diffs": {
+  #       "puppetlabs-ntp": {
+  #         "test6": "6.4.1",
+  #         "test7": "6.4.4"
+  #       }
+  #     },
+  #     "shared": {
+  #       "puppetlabs-concat": "4.0.0",
   #     }
-  #   }
+  #
   post '/envs/compare' do
     content_type 'application/json'
     data = JSON.parse(request.body.read)
