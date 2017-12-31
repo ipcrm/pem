@@ -97,4 +97,5 @@ th {
 .panel-group .panel {
   border-left: none;
   border-right: none;
+  border-bottom: none;
 }
