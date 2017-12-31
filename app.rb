@@ -218,11 +218,7 @@ class PemApp < Sinatra::Base
   # Compare two environments
   #
   # Request
-  #   POST /envs/compare
-  #   [
-  #     "test6",
-  #     "test7"
-  #   ]
+  #   GET /envs/compare/:env1/:env2
   # Response
   #   {
   #     "diffs": {
@@ -235,10 +231,9 @@ class PemApp < Sinatra::Base
   #       "puppetlabs-concat": "4.0.0",
   #     }
   #
-  post '/envs/compare' do
+  get '/envs/compare/:env1/:env2' do
     content_type 'application/json'
-    data = JSON.parse(request.body.read)
-    pem.compare_envs(data[0], data[1]).to_json
+    pem.compare_envs(params[:env1], params[:env2]).to_json
   end
 
   # Find enviornment a module is deployed to

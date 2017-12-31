@@ -10,23 +10,26 @@ var pemApp = angular.module("pemApp", ['ngRoute','ui.bootstrap']);
 pemApp.config(function($routeProvider) {
     $routeProvider
 
-        // route for the home page
         .when('/environments', {
             templateUrl : 'assets/pages/environments.html',
             controller  : 'envController'
         })
 
-        // route for the modules page
         .when('/modules', {
             templateUrl : 'assets/pages/modules.html',
             controller  : 'moduleController'
         })
 
-        // route for the mod_detail page
         .when('/mod_detail/:name/:version', {
             templateUrl : 'assets/pages/mod_detail.html',
             controller  : 'mod_detailController'
         })
+
+        .when('/env_compare/:env1/:env2', {
+            templateUrl : 'assets/pages/env_compare.html',
+            controller  : 'env_compareController'
+        })
+
 
         .otherwise({redirectTo: '/environments'});
 
@@ -52,6 +55,16 @@ pemApp.controller('envController', function($scope, $http) {
     $http.get(conn_string + '/envs')
       .then(function(response){
         $scope.envs = response.data
+    });
+});
+
+pemApp.controller('env_compareController', function($scope, $http, $routeParams) {
+    $http.get(conn_string + '/envs/compare/' + $routeParams.env1 + "/" + $routeParams.env2)
+      .then(function(response){
+        console.log(response.data);
+        $scope.env1 = $routeParams.env1;
+        $scope.env2 = $routeParams.env2;
+        $scope.envdata = response.data;
     });
 });
 

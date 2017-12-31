@@ -1,0 +1,58 @@
+<div class="jumbotron">
+  <h3> Comparing enviornment [{{env1}}] to environment [{{env2}}]</h3>
+  <a href back-button class="btn btn-default" role="button">Done</a>
+</div>
+
+<br />
+<uib-accordion  close-others="oneAtATime">
+  <div uib-accordion-group class="panel-default" heading="Modules with different versions">
+    <div class="panel-body">
+      <div>
+        <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+              <th>Module</th>
+              <th>Environment: {{env1}}</th>
+              <th>Environment: {{env2}}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="(m,v) in envdata['diffs']">
+              <td>{{ m }}</td>
+              <td>{{ envdata['diffs'][m][env1] === false ? 'N/A' : envdata['diffs'][m][env1] }}</td>
+              <td>{{ envdata['diffs'][m][env2] === false ? 'N/A' : envdata['diffs'][m][env2] }}</td>
+            </tr>
+            <tr ng-if="envdata['diffs'].length === 0">
+              <td>N/A</td>
+              <td>N/A</td>
+              <td>N/A</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div uib-accordion-group class="panel-default" heading="Modules with same versions">
+    <div class="panel-body">
+      <table class="table table-striped table-hover">
+        <thead>
+          <tr>
+            <th>Module</th>
+              <th>Version</th>
+            </tr>
+          </thead>
+        <tbody>
+          <tr ng-repeat="(m,v) in envdata['shared']">
+            <td>{{ m }}</td>
+            <td>{{ v }}</td>
+          </tr>
+          <tr ng-if="envdata['shared'].length === 0">
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</uib-accordion>

@@ -93,3 +93,8 @@ th {
 .tr_repeat:last-of-type {
   border: none;
 }
+
+.panel-group .panel {
+  border-left: none;
+  border-right: none;
+}
