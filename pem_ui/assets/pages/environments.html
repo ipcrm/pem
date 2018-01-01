@@ -1,7 +1,11 @@
 <h1>Deployed Code Environments</h1>
 <hr />
 <uib-accordion  close-others="oneAtATime">
-  <div uib-accordion-group class="panel-default" heading="{{name}}" ng-repeat="(name,modules) in envs">
+  <div uib-accordion-group class="panel-default" ng-repeat="(name,modules) in envs" is-open="status.open">
+    <uib-accordion-heading>
+      <icon class="glyphicon" ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}" />
+      <span class="expand_span">{{name}}</span>
+    </uib-accordion-heading>
     <div class="panel-body">
       <div class="btn-group env_button_grp">
         <a href="/envs/{{name}}/download" class="btn btn-default" role="button">Compare</a>

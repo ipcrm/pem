@@ -56,6 +56,16 @@ h1 {
 /*  margin-left: 30px; */
 }
 
+.expand_span {
+  font-size: 20px;
+  padding-left: 10px;
+  display: block;
+  float: right;
+  text-align: center;
+  margin-top: -2px;
+  font-family: helvitica;
+}
+
 .container-fluid {
   padding-left: 180px;
 }
