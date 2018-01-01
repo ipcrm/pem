@@ -57,13 +57,14 @@ h1 {
 }
 
 .expand_span {
-  font-size: 20px;
-  padding-left: 10px;
+  font-size: 16px;
+  padding-left: 8px;
+  margin-top: 1px;
   display: block;
   float: right;
   text-align: center;
-  margin-top: -2px;
-  font-family: helvitica;
+  font-family: Helvetica;
+  font-weight: bold;
 }
 
 .container-fluid {

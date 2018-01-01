@@ -5,7 +5,11 @@
 
 <br />
 <uib-accordion  close-others="oneAtATime">
-  <div uib-accordion-group class="panel-default" heading="Modules with different versions">
+  <div uib-accordion-group class="panel-default" is-open="status.open">
+    <uib-accordion-heading>
+      <icon class="glyphicon" ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}" />
+      <span class="expand_span">Modules with different versions</span>
+    </uib-accordion-heading>
     <div class="panel-body">
       <div>
         <table class="table table-striped table-hover">
@@ -32,7 +36,11 @@
       </div>
     </div>
   </div>
-  <div uib-accordion-group class="panel-default" heading="Modules with same versions">
+  <div uib-accordion-group class="panel-default" is-open="status1.open">
+    <uib-accordion-heading>
+      <icon class="glyphicon" ng-class="{'glyphicon-chevron-down': status1.open, 'glyphicon-chevron-right': !status1.open}" />
+      <span class="expand_span">Modules with same versions</span>
+    </uib-accordion-heading>
     <div class="panel-body">
       <table class="table table-striped table-hover">
         <thead>
@@ -47,7 +55,6 @@
             <td>{{ v }}</td>
           </tr>
           <tr ng-if="envdata['shared'].length === 0">
-            <td>N/A</td>
             <td>N/A</td>
             <td>N/A</td>
           </tr>
