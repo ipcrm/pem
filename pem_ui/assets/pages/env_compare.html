@@ -1,6 +1,6 @@
 <div class="jumbotron">
   <h3> Comparing enviornment [{{env1}}] to environment [{{env2}}]</h3>
-  <a href back-button class="btn btn-default" role="button">Done</a>
+  <a href="#!environments" class="btn btn-default" role="button">Done</a>
 </div>
 
 <br />
@@ -21,15 +21,10 @@
             </tr>
           </thead>
           <tbody>
-            <tr ng-repeat="(m,v) in envdata['diffs']">
+            <tr ng-repeat="(m,v) in envdata['diffs']" ng-if="envdata['diffs']">
               <td>{{ m }}</td>
               <td>{{ envdata['diffs'][m][env1] === false ? 'N/A' : envdata['diffs'][m][env1] }}</td>
               <td>{{ envdata['diffs'][m][env2] === false ? 'N/A' : envdata['diffs'][m][env2] }}</td>
-            </tr>
-            <tr ng-if="envdata['diffs'].length === 0">
-              <td>N/A</td>
-              <td>N/A</td>
-              <td>N/A</td>
             </tr>
           </tbody>
         </table>
@@ -50,13 +45,9 @@
             </tr>
           </thead>
         <tbody>
-          <tr ng-repeat="(m,v) in envdata['shared']">
+          <tr ng-repeat="(m,v) in envdata['shared']" ng-if="envdata['shared']">
             <td>{{ m }}</td>
             <td>{{ v }}</td>
-          </tr>
-          <tr ng-if="envdata['shared'].length === 0">
-            <td>N/A</td>
-            <td>N/A</td>
           </tr>
         </tbody>
       </table>
