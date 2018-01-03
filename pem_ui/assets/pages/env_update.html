@@ -1,0 +1,36 @@
+<div class="jumbotron env_select" ng-show="!loading && !loaded">
+    <h3>Update version of [{{module}}] in [{{env}}] environment</h3>
+    <br />
+    <br />
+    <br />
+    <div class="row" ng-show="!loading && !loaded">
+        <div class="col-md-4">
+            <h4>Current Version:</h4>
+        </div>
+        <div class="col-md-8">
+            <h4 style="padding-left: 5px;">{{current_version}}</h4>
+        </div>
+    </div>
+    <div class="row" ng-show="!loading && !loaded">
+        <div class="col-md-4">
+          <h4>New Version:</h4>
+        </div>
+        <div class="col-md-8">
+            <select 
+                class="form-control float-right" 
+                ng-model="selectedItem"
+                ng-change="update_env(selectedItem)">
+                    <option value="">Select a version...</option>
+                    <option ng-repeat="v in versions" value="{{v}}">{{v}}</option>
+            </select>
+        </div>
+    </div>
+</div>
+<div class="jumbotron env_select" ng-show="loading">
+  <h3>Updating environment {{env}}, please wait...</h3>
+</div>
+<div id="loader" ng-show="loading && !loaded"></div>
+<div class="jumbotron env_select" ng-show="loaded">
+    <h3>Successfully updated environment [{{env}}]!</h3>
+    <a href="#!environments" class="btn btn-default" role="button">Done</a>
+</div>

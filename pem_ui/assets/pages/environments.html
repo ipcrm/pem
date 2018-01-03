@@ -1,5 +1,8 @@
 <h1>Deployed Code Environments</h1>
 <hr />
+<div class="envs_create_new">
+  <a href="#!env_create" class="btn btn-default" role="button">Create New Environment</a>
+</div>
 <uib-accordion  close-others="oneAtATime">
   <div uib-accordion-group class="panel-default" ng-repeat="(name,modules) in envs" is-open="status.open">
     <uib-accordion-heading>
@@ -16,14 +19,20 @@
           <tr>
             <th>Module</th>
             <th>Version</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
-          <tr ng-repeat="(name, version) in modules" class="tr_repeat">
-            <td>{{ name }}</td>
+          <tr ng-repeat="(n,v) in modules" class="tr_repeat">
+            <td>{{ n }}</td>
             <td>
-              <a href="#!mod_detail/{{name}}/{{version}}"
-                  class="btn btn-default" role="button">{{ version }}</a>
+              <a href="#!mod_detail/{{n}}/{{v}}"
+                  class="btn btn-default" role="button">{{ v }}</a>
+            </td>
+            <td>
+              <a href="#!env_update/{{name}}/{{n}}/{{v}}">
+                <span class="glyphicon glyphicon-edit"></span>
+              </a>
             </td>
           </tr>
         </tbody>
