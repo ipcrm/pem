@@ -45,6 +45,15 @@ pemApp.config(function($routeProvider) {
             controller  : 'env_updateController'
         })
 
+        .when('/env_addmod/:env', {
+            templateUrl : 'assets/pages/env_addmod.html',
+            controller  : 'env_addmodController'
+        })
+
+        .when('/env_remove_mod/:env/:module', {
+            templateUrl : 'assets/pages/env_remove_mod.html',
+            controller  : 'env_remove_modController'
+        })
 
         .otherwise({redirectTo: '/environments'});
 
@@ -66,11 +75,15 @@ pemApp.controller('mod_detailController', function($scope, $http, $routeParams) 
     });
 });
 
-pemApp.controller('envController', function($scope, $http) {
+pemApp.controller('envController', function($scope, $http, $location) {
     $http.get(conn_string + '/envs')
       .then(function(response){
         $scope.envs = response.data
     });
+
+    $scope.remove_module = function(env,name) {
+        $location.path('/env_remove_mod/' + env + "/" + name);
+    }
 });
 
 pemApp.controller('env_compareController', function($scope, $http, $routeParams) {
@@ -107,7 +120,7 @@ pemApp.controller('env_createController', function($scope, $http, $location) {
 //    });
 });
 
-pemApp.controller('env_updateController', function($scope, $http, $location, $routeParams) {
+pemApp.controller('env_updateController', function($scope, $http, $routeParams) {
     $scope.current_version = $routeParams.current_version;
     $scope.module = $routeParams.module; 
     $scope.env = $routeParams.env;
@@ -141,6 +154,65 @@ pemApp.controller('env_updateController', function($scope, $http, $location, $ro
 
 });
 
+pemApp.controller('env_addmodController', function($scope, $http, $routeParams) {
+    $scope.mod_selected = false;
+    $scope.env = $routeParams.env;
+
+    $http.get(conn_string + '/modules')
+      .then(function(response){
+        $scope.modules = response.data
+    });
+
+    $http.get(conn_string + '/envs/' + $routeParams.env + '/modules')
+    .then(function(response){
+      $scope.env_modules = response.data
+    });
+
+    $scope.add_module = function(selected) {
+        $scope.versions = $scope.modules[selected];
+        $scope.selected_mod = selected;
+        $scope.mod_selected = true;
+    };
+
+    $scope.deploy_mod_env = function(selectedver) {
+        $scope.loading = true;
+
+        $scope.env_modules[$scope.selected_mod] = selectedver;
+
+        $http.post(conn_string + '/envs/' + $routeParams.env + '/create', $scope.env_modules)
+            .then(function(response){
+                console.log($scope.env_modules);
+                $scope.create_env_resp = response.data;
+            }).finally(function(){
+                $scope.loading = false;
+                $scope.loaded = true;
+            });
+    };
+});
+
+pemApp.controller('env_remove_modController', function($scope, $http, $routeParams) {
+    $scope.loading = true;
+    $scope.module = $routeParams.module; 
+    $scope.env = $routeParams.env;
+
+    $http.get(conn_string + '/envs/' + $routeParams.env + '/modules')
+      .then(function(response){
+        $scope.env_modules = response.data;
+        delete $scope.env_modules[$routeParams.module];
+
+        $http.post(conn_string + '/envs/' + $routeParams.env + '/create', $scope.env_modules)
+            .then(function(response){
+                $scope.create_env_resp = response.data;
+            }).finally(function(){
+                $scope.loading = false;
+                $scope.loaded = true;
+            });
+    });
+
+});
+
+
+
 pemApp.directive('backButton', function(){
     return {
       restrict: 'A',
@@ -155,3 +227,21 @@ pemApp.directive('backButton', function(){
       }
     }
 });
+
+pemApp.directive('ngConfirmBoxClick', [
+    function () {
+        return {
+            link: function (scope, element, attr) {
+                var msg = attr.ngConfirmBoxClick || "Are you sure want to delete?";
+                var clickAction = attr.confirmedClick;
+                element.bind('click', function (event) {
+                    if (window.confirm(msg)) {
+                        console.log('You said yes!');
+                        console.log(clickAction);
+                        scope.$apply(clickAction);
+                    }
+                });
+            }
+        };
+    }
+]);
