@@ -1,0 +1,41 @@
+<div class="jumbotron env_select" ng-show="!loading && !loaded">
+    <h3>Add module to the [{{env}}] environment:</h3>
+    <br />
+    <br />
+    <div class="row">
+        <div class="col-md-4">
+            <h4>Select Module:</h4>
+        </div>
+        <div class="col-md-8">
+            <select 
+                class="form-control float-right" 
+                ng-model="selectedModule"
+                ng-change="add_module(selectedModule)">
+                    <option value="">Select a module...</option>
+                    <option ng-repeat="(m,v) in modules" value="{{m}}">{{m}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="row" ng-show="mod_selected">
+        <div class="col-md-4">
+            <h4>Select Version:</h4>
+        </div>
+        <div class="col-md-8">
+            <select 
+                class="form-control float-right" 
+                ng-model="selectedModVer"
+                ng-change="deploy_mod_env(selectedModVer)">
+                    <option value="">Select a version...</option>
+                    <option ng-repeat="v in versions" value="{{v}}">{{v}}</option>
+            </select>
+        </div>
+    </div>
+</div>
+<div class="jumbotron env_select" ng-show="loading">
+  <h3>Updating environment {{env}}, please wait...</h3>
+</div>
+<div id="loader" ng-show="loading && !loaded"></div>
+<div class="jumbotron env_select" ng-show="loaded">
+    <h3>Successfully added module [{{selected_mod}}] environment [{{env}}]!</h3>
+    <a href="#!environments" class="btn btn-default" role="button">Done</a>
+</div>
