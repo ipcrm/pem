@@ -60,14 +60,14 @@ pemApp.config(function($routeProvider) {
 });
 
 pemApp.controller('moduleController', function($scope, $http) {
-    $http.get(conn_string + '/modules')
+    $http.get(conn_string + '/api/modules')
       .then(function(response){
         $scope.modules = response.data
     });
 });
 
 pemApp.controller('mod_detailController', function($scope, $http, $routeParams) {
-    $http.get(conn_string + '/find_mod_envs/' + $routeParams.name + "/" + $routeParams.version)
+    $http.get(conn_string + '/api/find_mod_envs/' + $routeParams.name + "/" + $routeParams.version)
       .then(function(response){
         $scope.envs = response.data;
         $scope.name = $routeParams.name;
@@ -76,7 +76,7 @@ pemApp.controller('mod_detailController', function($scope, $http, $routeParams) 
 });
 
 pemApp.controller('envController', function($scope, $http, $location) {
-    $http.get(conn_string + '/envs')
+    $http.get(conn_string + '/api/envs')
       .then(function(response){
         $scope.envs = response.data
     });
@@ -87,7 +87,7 @@ pemApp.controller('envController', function($scope, $http, $location) {
 });
 
 pemApp.controller('env_compareController', function($scope, $http, $routeParams) {
-    $http.get(conn_string + '/envs/compare/' + $routeParams.env1 + "/" + $routeParams.env2)
+    $http.get(conn_string + '/api/envs/compare/' + $routeParams.env1 + "/" + $routeParams.env2)
       .then(function(response){
         console.log(response.data);
         console.log(response.data[Object.keys(response.data)[0]]);
@@ -98,7 +98,7 @@ pemApp.controller('env_compareController', function($scope, $http, $routeParams)
 });
 
 pemApp.controller('env_compare_prepController', function($scope, $http, $routeParams, $location) {
-    $http.get(conn_string + '/envs')
+    $http.get(conn_string + '/api/envs')
       .then(function(response){
         var envs = response.data;
         delete envs[$routeParams.env1];
@@ -125,13 +125,13 @@ pemApp.controller('env_updateController', function($scope, $http, $routeParams) 
     $scope.module = $routeParams.module; 
     $scope.env = $routeParams.env;
 
-    $http.get(conn_string + '/modules')
+    $http.get(conn_string + '/api/modules')
       .then(function(response){
         var modules = response.data
         $scope.versions = modules[$routeParams.module];
     });
 
-    $http.get(conn_string + '/envs/' + $routeParams.env + '/modules')
+    $http.get(conn_string + '/api/envs/' + $routeParams.env + '/modules')
       .then(function(response){
         $scope.env_modules = response.data
     });
@@ -142,7 +142,7 @@ pemApp.controller('env_updateController', function($scope, $http, $routeParams) 
         delete $scope.env_modules[$routeParams.module];
         $scope.env_modules[$routeParams.module] = selected;
 
-        $http.post(conn_string + '/envs/' + $routeParams.env + '/create', $scope.env_modules)
+        $http.post(conn_string + '/api/envs/' + $routeParams.env + '/create', $scope.env_modules)
             .then(function(response){
                 console.log($scope.env_modules);
                 $scope.create_env_resp = response.data;
@@ -158,12 +158,12 @@ pemApp.controller('env_addmodController', function($scope, $http, $routeParams) 
     $scope.mod_selected = false;
     $scope.env = $routeParams.env;
 
-    $http.get(conn_string + '/modules')
+    $http.get(conn_string + '/api/modules')
       .then(function(response){
         $scope.modules = response.data
     });
 
-    $http.get(conn_string + '/envs/' + $routeParams.env + '/modules')
+    $http.get(conn_string + '/api/envs/' + $routeParams.env + '/modules')
     .then(function(response){
       $scope.env_modules = response.data
     });
@@ -179,7 +179,7 @@ pemApp.controller('env_addmodController', function($scope, $http, $routeParams) 
 
         $scope.env_modules[$scope.selected_mod] = selectedver;
 
-        $http.post(conn_string + '/envs/' + $routeParams.env + '/create', $scope.env_modules)
+        $http.post(conn_string + '/api/envs/' + $routeParams.env + '/create', $scope.env_modules)
             .then(function(response){
                 console.log($scope.env_modules);
                 $scope.create_env_resp = response.data;
@@ -195,12 +195,12 @@ pemApp.controller('env_remove_modController', function($scope, $http, $routePara
     $scope.module = $routeParams.module; 
     $scope.env = $routeParams.env;
 
-    $http.get(conn_string + '/envs/' + $routeParams.env + '/modules')
+    $http.get(conn_string + '/api/envs/' + $routeParams.env + '/modules')
       .then(function(response){
         $scope.env_modules = response.data;
         delete $scope.env_modules[$routeParams.module];
 
-        $http.post(conn_string + '/envs/' + $routeParams.env + '/create', $scope.env_modules)
+        $http.post(conn_string + '/api/envs/' + $routeParams.env + '/create', $scope.env_modules)
             .then(function(response){
                 $scope.create_env_resp = response.data;
             }).finally(function(){

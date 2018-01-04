@@ -1,6 +1,6 @@
 # PEM
 
-- Tested with both ruby 2.3.1 and 2.4.1
+- Tested with ruby 2.3.1 and 2.4.1
 - Copy config.yml.default to config.yml
 - Edit config.yml as needed for your environment
 

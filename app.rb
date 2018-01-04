@@ -28,7 +28,7 @@ class PemApp < Sinatra::Base
   # List all envs
   #
   # Request
-  #   GET /envs
+  #   GET /api/envs
   #
   # Response
   #   {
@@ -38,7 +38,7 @@ class PemApp < Sinatra::Base
   #       "teamx": "ced1b6"
   #     }
   #   }
-  get '/envs' do
+  get '/api/envs' do
     content_type 'application/json'
     pem.envs.to_json
   end
@@ -46,7 +46,7 @@ class PemApp < Sinatra::Base
   # Deploy a global module
   #
   # Request
-  #  POST /deploy_mod
+  #  POST /api/deploy_mod
   #  {
   #     "myorg-ntp": {
   #       "version": "e93a55d",
@@ -59,7 +59,7 @@ class PemApp < Sinatra::Base
   #     "status":"successful"
   #   }
   #
-  post '/deploy_mod' do
+  post '/api/deploy_mod' do
     content_type 'application/json'
     data = JSON.parse(request.body.read)
 
@@ -80,12 +80,12 @@ class PemApp < Sinatra::Base
   # Typically this would be the result of building the archive via `puppet module build`
   #
   # Request
-  #   PUT /upload_mod/example-ntp-0.0.3
+  #   PUT /api/upload_mod/example-ntp-0.0.3
   #     Binary (tar.gz file that results from puppet module build)
   # Response
   #  {"status":"successful"}
   #
-  put '/upload_mod/:name' do
+  put '/api/upload_mod/:name' do
     if params[:name].count('-') == 2
 
       author, name, version = params[:name].chomp.split('-')
@@ -114,7 +114,7 @@ class PemApp < Sinatra::Base
   # Delete a global module
   #
   # Request
-  #  POST /delete_mod
+  #  POST /api/delete_mod
   #  {
   #     "myorg-ntp": {
   #       "version": "e93a55d"
@@ -128,7 +128,7 @@ class PemApp < Sinatra::Base
   #     "status":"failed", "envs": ["test3"]
   #   }
   #
-  post '/purge_mod' do
+  post '/api/purge_mod' do
     content_type 'application/json'
     data = JSON.parse(request.body.read)
 
@@ -149,7 +149,7 @@ class PemApp < Sinatra::Base
   # Get global modules
   #
   # Request
-  #   GET /modules
+  #   GET /api/modules
   # Response
   #  {
   #    "fake-module": [
@@ -168,7 +168,7 @@ class PemApp < Sinatra::Base
   #      "1.2.0"
   #    ]
   #  }
-  get '/modules' do
+  get '/api/modules' do
     content_type 'application/json'
     pem.modules.to_json
   end
@@ -176,7 +176,7 @@ class PemApp < Sinatra::Base
   # Create an environment
   #
   # Request
-  #   POST /envs/testenv/create
+  #   POST /api/envs/testenv/create
   #   {
   #     "myorg-teamx": "ced1b64",
   #     "puppetlabs-ntp": "6.4.1",
@@ -186,7 +186,7 @@ class PemApp < Sinatra::Base
   #   {
   #     "status":"successful"
   #   }
-  post '/envs/:name/create' do
+  post '/api/envs/:name/create' do
     content_type 'application/json'
     data = JSON.parse(request.body.read)
     e = PemEnv.new(params[:name], pem)
@@ -202,14 +202,14 @@ class PemApp < Sinatra::Base
   # Get modules for configured enviornment
   #
   # Request
-  #   GET /envs/testenv/modules
+  #   GET /api/envs/testenv/modules
   # Response
   #   {
   #     "concat": "4.1.1",
   #     "ntp": "6.4.1",
   #     "teamx": "ced1b6"
   #   }
-  get '/envs/:name/modules' do
+  get '/api/envs/:name/modules' do
     content_type 'application/json'
     e = PemEnv.new(params[:name], pem)
     e.mods.to_json
@@ -218,7 +218,7 @@ class PemApp < Sinatra::Base
   # Compare two environments
   #
   # Request
-  #   GET /envs/compare/:env1/:env2
+  #   GET /api/envs/compare/:env1/:env2
   # Response
   #   {
   #     "diffs": {
@@ -231,7 +231,7 @@ class PemApp < Sinatra::Base
   #       "puppetlabs-concat": "4.0.0",
   #     }
   #
-  get '/envs/compare/:env1/:env2' do
+  get '/api/envs/compare/:env1/:env2' do
     content_type 'application/json'
     pem.compare_envs(params[:env1], params[:env2]).to_json
   end
@@ -239,13 +239,13 @@ class PemApp < Sinatra::Base
   # Find enviornment a module is deployed to
   #
   # Request
-  #  get /find_mod_envs/:name/:version
+  #  get /api/find_mod_envs/:name/:version
   #
   # Response
   #   {
   #     "status": true, "envs": [ "test1", "test2" ]
   #   }
-  get '/find_mod_envs/:name/:version' do
+  get '/api/find_mod_envs/:name/:version' do
     content_type 'application/json'
     pem.find_module(params[:name], params[:version]).to_json
   end
@@ -257,7 +257,7 @@ class PemApp < Sinatra::Base
   # Response
   #   application/octet-stream file in tar.gz format
   #
-  get '/envs/:name/download' do
+  get '/api/envs/:name/download' do
     tmpfile = pem.create_env_archive(params[:name])
     f = File.open(tmpfile.path, 'r+')
     send_file(f, filename: "#{params[:name]}.tar.gz", type: 'Application/octet-stream')
