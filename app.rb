@@ -253,7 +253,7 @@ class PemApp < Sinatra::Base
   # Download copy of environment
   #
   # Request
-  #   GET /envs/download/:name
+  #   GET /api/envs/download/:name
   # Response
   #   application/octet-stream file in tar.gz format
   #
@@ -262,4 +262,20 @@ class PemApp < Sinatra::Base
     f = File.open(tmpfile.path, 'r+')
     send_file(f, filename: "#{params[:name]}.tar.gz", type: 'Application/octet-stream')
   end
+
+
+  # Get forge modules and versions for the supplied search string
+  #
+  # Request
+  #  GET /api/find_forge_mod/:search_string
+  # Response
+  #  {
+  #     "puppetlabs-docker":["1.0.4","1.0.3","1.0.2","1.0.1","1.0.0"],
+  #     ...
+  #  }
+  get '/api/find_forge_mod/:search_string' do
+    content_type 'application/json'
+    pem.get_forge_modules(params[:search_string]).to_json
+  end
+
 end

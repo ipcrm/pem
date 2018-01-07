@@ -8,6 +8,7 @@ gem 'r10k'
 gem 'rugged', '0.25.1.1'
 gem 'sinatra'
 gem 'minitar'
+gem 'rest-client'
 
 group :development do
   gem 'pry'
