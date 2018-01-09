@@ -357,7 +357,7 @@ class Pem
   def get_forge_modules(search_string)
     modules = {}
 
-    unless search_string =~ /^[[:alpha:]]+$/
+    unless search_string =~ /^\A[-\w.]*\z/
       raise 'Invalid search_string provided'
     end
 

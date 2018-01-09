@@ -25,6 +25,11 @@ pemApp.config(function($routeProvider) {
             controller  : 'mod_detailController'
         })
 
+        .when('/mod_create', {
+            templateUrl : 'assets/pages/mod_create.html',
+            controller  : 'mod_createController'
+        })
+
         .when('/env_compare/:env1/:env2', {
             templateUrl : 'assets/pages/env_compare.html',
             controller  : 'env_compareController'
@@ -73,6 +78,59 @@ pemApp.controller('mod_detailController', function($scope, $http, $routeParams) 
         $scope.name = $routeParams.name;
         $scope.version = $routeParams.version;
     });
+});
+
+pemApp.controller('mod_createController', function($scope, $http) {
+
+    $scope.search_for_mod = function(search_string) {
+        $scope.loading = true;
+
+        $http.get(conn_string + '/api/find_forge_mod/' + search_string)
+        .then(function(response){
+            $scope.mod_list = response.data;
+        }).finally(function(){
+            $scope.loading = false;
+            $scope.forge_mods_found = true;
+        });
+    }
+
+    $scope.get_versions = function(name) {
+        $scope.mod_versions = $scope.mod_list[name];
+        $scope.mod_found = true;
+        $scope.forge_mods_found = false;
+    }
+
+    $scope.add_module = function(name,version) {
+        console.log("Mod " + name + " version " + version );
+        $scope.loading = true;
+
+        var post_data = {};
+        post_data[name] = {'type':'forge', 'version': version };
+        $http.post(conn_string + '/api/deploy_mod', post_data)
+            .then(function(response){
+                $scope.result = response.data;
+            }).finally(function(){
+                $scope.loading = false;
+                $scope.loaded = true;
+            });
+    }
+
+    $scope.add_git_module = function() {
+        $scope.mod_found = true;
+        $scope.loading = true;
+        var post_data = {};
+        post_data[$scope.module.name] = {'type':'git', 
+                                         'version': $scope.module.version,
+                                         'source': $scope.module.source,
+                                         };
+        $http.post(conn_string + '/api/deploy_mod', post_data)
+            .then(function(response){
+                $scope.result = response.data;
+            }).finally(function(){
+                $scope.loading = false;
+                $scope.loaded = true;
+        });
+    }
 });
 
 pemApp.controller('envController', function($scope, $http, $location) {

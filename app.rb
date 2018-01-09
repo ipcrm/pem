@@ -53,7 +53,14 @@ class PemApp < Sinatra::Base
   #       "type": "git",
   #       "source": "https://github.com/ipcrm/ipcrm-ntp.git"
   #     }
-  #   }
+  #  }
+  #
+  #  {
+  #     "puppetlabs-concat":{
+  #       "version": "4.1.0",
+  #       "type": "forge"
+  #      }
+  #  }
   # Response
   #   {
   #     "status":"successful"
