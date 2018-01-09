@@ -1,0 +1,101 @@
+<div class="jumbotron env_select" ng-show="!loaded">
+    <h3>Add a new global module</h3>
+</div>
+<h4 ng-show="!mod_found && !loading">Add a new module of type:</h4>
+<select 
+    class="form-control"
+    ng-show="!mod_found && !loading"
+    ng-model="selectedType">
+        <option value="">Select a module type...</option>
+        <option value="forge">Puppet Forge</option>
+        <option value="git">Module from Git</option>
+</select>
+<br />
+
+
+<!-- Forge Module -->
+<form 
+    ng-submit="search_for_mod(module.search)" 
+    ng-show="selectedType === 'forge' && !forge_mods_found && !mod_found && !loading">
+
+    <div class="form-group">
+        <label for="module_name" >Search for a forge module: </label>
+        <input 
+            class="form-control"
+            type="text"
+            id="module_name"
+            ng-model="module.search"
+            placeholder="Type full module name - e.g. puppetlabs-apache or nginx" />
+        <button class="btn btn-default">Submit</button> 
+    </div>
+</form>
+
+<h4 ng-show="forge_mods_found">Choose discovered forge module:</h4>
+<select 
+    class="form-control float-right" 
+    ng-show="forge_mods_found && !loading"
+    ng-model="module.name"
+    ng-change="get_versions(module.name)">
+    <option value="">Select a module to deploy...</option>
+    <option ng-repeat="(n,v) in mod_list" value="{{n}}">{{n}}</option>
+</select>
+
+<div id="loader" ng-show="loading"></div>
+
+<h4 ng-show="mod_found && !loading && !loaded">Add Module {{module.name}}:</h4>
+<select 
+    class="form-control float-right" 
+    ng-show="mod_found && !loading && !loaded"
+    ng-model="module.version"
+    ng-change="add_module(module.name,module.version)">
+    <option value="">Select a version to deploy...</option>
+    <option ng-repeat="v in mod_versions" value="{{v}}">{{v}}</option>
+</select>
+
+<div id="loader" ng-show="loading"></div>
+
+<!-- End Forge Module -->
+
+<!-- Git module -->
+<h4 ng-show="selectedType === 'git' && !loading && !loaded">Add New Module from Git:</h4>
+<form 
+    ng-submit="add_git_module()" 
+    ng-show="selectedType === 'git' && !loading && !loaded">
+
+    <div class="form-group">
+        <label for="module_name" >Module Name: </label>
+        <input 
+            class="form-control"
+            type="text"
+            id="module_name"
+            ng-model="module.name"
+            placeholder="e.g. ipcrm-echo" />
+    </div>
+    <div class="form-group">
+        <label for="module_source" >Module Source: </label>
+        <input 
+            class="form-control"
+            type="text"
+            id="module_source"
+            ng-model="module.source"
+            placeholder="e.g. https://github.com/ipcrm/ipcrm-echo.git" />
+    </div>
+    <div class="form-group">
+        <label for="module_version" >Module Version: </label>
+        <input 
+            class="form-control"
+            type="text"
+            id="module_version"
+            ng-model="module.version"
+            placeholder="Commit or release - e.g. 83024ee or 0.1.3" />
+    </div>
+    <button class="btn btn-default">Submit</button> 
+</form>
+
+<!-- End Git module -->
+
+
+<div class="jumbotron env_select" ng-show="loaded">
+    <h3>Successfully added module [{{module.name}}] at version [{{module.version}}]!</h3>
+    <a href="#!modules" class="btn btn-default" role="button">Done</a>
+</div>
