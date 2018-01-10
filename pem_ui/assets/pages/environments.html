@@ -25,11 +25,15 @@
       <span class="expand_span">{{name}}</span>
     </uib-accordion-heading>
     <div class="panel-body">
-      <div class="btn-group env_button_grp">
-        <a href="#!env_compare_prep/{{name}}" class="btn btn-default" role="button">Compare</a>
+      <div class="btn-group env_button_grp" uib-dropdown>
+        <button id="comapre_{{name}}" class="btn btn-primary" uib-dropdown-toggle ng-disabled="disabled">Compare<span class="caret"></span>
+        </button>
+            <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="compare_{{name}}">
+              <li role="menuitem" ng-repeat="(other_env,mods) in envs" ng-if="other_env != name"><a href="#!env_compare/{{name}}/{{other_env}}">{{other_env}}</a>
+            </ul>
         <a href="#!env_addmod/{{name}}" class="btn btn-default" role="button">Add Module</a>
         <a href="/api/envs/{{name}}/download" class="btn btn-default" role="button">Download</a>
-        <a confirmed-click="delete_env(name)" class="btn btn-default" role="button"
+        <a confirmed-click="delete_env(name)" class="btn btn-danger" role="button"
         ng-confirm-box-click="Are you sure want to delete environment {{name}}?">Delete</a>
       </div>
       <table class="table table-hover table-striped">
