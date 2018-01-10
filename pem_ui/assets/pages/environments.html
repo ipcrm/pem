@@ -1,9 +1,24 @@
-<h1>Deployed Code Environments</h1>
-<hr />
-<div class="envs_create_new">
+
+<div ng-show="!loading && !loaded">
+  <h1>Deployed Code Environments</h1>
+  <hr />
+</div>
+
+<div class="jumbotron env_select" ng-show="loaded">
+  <h3>Removed environment {{deleted_env}}!</h3>
+  <a href="#!/" class="btn btn-default" role="button">Done</a>
+</div>
+
+<div class="jumbotron env_select" ng-show="loading">
+  <h3>Removing environment {{deleted_env}}</h3>
+</div>
+
+
+
+<div class="envs_create_new" ng-show="!loading && !loaded">
   <a href="#!env_create" class="btn btn-default" role="button">Create New Environment</a>
 </div>
-<uib-accordion  close-others="oneAtATime">
+<uib-accordion  close-others="oneAtATime" ng-show="!loading && !loaded">
   <div uib-accordion-group class="panel-default" ng-repeat="(name,modules) in envs" is-open="status.open">
     <uib-accordion-heading>
       <icon class="glyphicon" ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}" />
@@ -14,6 +29,8 @@
         <a href="#!env_compare_prep/{{name}}" class="btn btn-default" role="button">Compare</a>
         <a href="#!env_addmod/{{name}}" class="btn btn-default" role="button">Add Module</a>
         <a href="/api/envs/{{name}}/download" class="btn btn-default" role="button">Download</a>
+        <a confirmed-click="delete_env(name)" class="btn btn-default" role="button"
+        ng-confirm-box-click="Are you sure want to delete environment {{name}}?">Delete</a>
       </div>
       <table class="table table-hover table-striped">
         <thead>
@@ -46,3 +63,6 @@
     </div>
   </div>
 </uib-accordion>
+
+
+<div id="loader" ng-show="loading"></div>

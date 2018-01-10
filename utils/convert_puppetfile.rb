@@ -23,12 +23,12 @@ modules.each do |mod|
     if mod.expected_version.is_a?(String)
 
       puts "Deploying module #{mod.title}"
-      conn.post '/deploy_mod', mod.title => { 'version' => mod.expected_version, 'type' => 'forge' }
+      conn.post '/api/deploy_mod', mod.title => { 'version' => mod.expected_version, 'type' => 'forge' }
       create_env[mod.title] = mod.expected_version
     end
   elsif mod.is_a? R10K::Module::Git
     puts "Deploying module #{mod.title}"
-    conn.post '/deploy_mod', "myorg-#{mod.name}" => {
+    conn.post '/api/deploy_mod', "myorg-#{mod.name}" => {
       'version' => mod.version[0, 7],
       'type' => 'git',
       'source' => mod.instance_variable_get(:@remote),
@@ -38,4 +38,4 @@ modules.each do |mod|
 end
 
 puts 'Creating env'
-conn.post "/envs/#{ARGV[1]}/create", create_env
+conn.post "/api/envs/#{ARGV[1]}/create", create_env

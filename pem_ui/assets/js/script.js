@@ -1,7 +1,6 @@
 // script.js
 
 var conn_string = 'http://' + master + ":" + port;
-console.log(conn_string)
 
 // create the module and name it scotchApp
 var pemApp = angular.module("pemApp", ['ngRoute','ui.bootstrap']);
@@ -101,7 +100,6 @@ pemApp.controller('mod_createController', function($scope, $http) {
     }
 
     $scope.add_module = function(name,version) {
-        console.log("Mod " + name + " version " + version );
         $scope.loading = true;
 
         var post_data = {};
@@ -141,14 +139,30 @@ pemApp.controller('envController', function($scope, $http, $location) {
 
     $scope.remove_module = function(env,name) {
         $location.path('/env_remove_mod/' + env + "/" + name);
-    }
+    };
+
+    $scope.delete_env = function(env) {
+        $scope.loading = true;
+        $scope.deleted_env = env;
+        var post_data = {};
+        post_data['env'] = env;
+        $http.post(conn_string + '/api/envs/delete', post_data)
+            .then(function(response){
+                $scope.delete_rsp = response.data;
+            }).finally(function(){
+                $scope.loading = false;
+                $scope.loaded = true;
+        });
+    };
+
+    $scope.confirm_deleted = function() {
+        $scope.loaded = false;
+    };
 });
 
 pemApp.controller('env_compareController', function($scope, $http, $routeParams) {
     $http.get(conn_string + '/api/envs/compare/' + $routeParams.env1 + "/" + $routeParams.env2)
       .then(function(response){
-        console.log(response.data);
-        console.log(response.data[Object.keys(response.data)[0]]);
         $scope.env1 = $routeParams.env1;
         $scope.env2 = $routeParams.env2;
         $scope.envdata = response.data;
@@ -171,11 +185,86 @@ pemApp.controller('env_compare_prepController', function($scope, $http, $routePa
 
 });
 
-pemApp.controller('env_createController', function($scope, $http, $location) {
-//    $http.get(conn_string + '/modules')
-//      .then(function(response){
-//        $scope.modules = response.data
-//    });
+pemApp.controller('env_createController', function($scope, $http, $location, $anchorScroll) {
+  $scope.mods = {};
+
+  $http.get(conn_string + '/api/envs')
+    .then(function(response){
+    $scope.envs = response.data
+   });
+
+  $http.get(conn_string + '/api/modules')
+      .then(function(response){
+      $scope.modules = response.data
+  });
+
+  $scope.Add = function () {
+    var mod = {};
+    mod.name    = $scope.Module;
+    mod.version = $scope.Version;
+    $scope.mods[mod.name] = mod.version;
+
+    $scope.Module  = "";
+    $scope.Version = "";
+    $scope.versions_found = false;
+    $scope.show_create = true;
+
+  };
+
+  $scope.Remove = function (m) {
+    delete $scope.mods[m];
+    $scope.show_create = $scope.is_mods();
+  };
+
+  $scope.is_mods = function() {
+    if (Object.keys($scope.mods).length > 0){
+        return true;
+    } else {
+        return false;
+    };
+  };
+
+  $scope.get_versions = function(name) {
+    $scope.mod_versions = $scope.modules[name];
+    $scope.versions_found = true;
+  };
+
+  $scope.show_copy_env = function() {
+    $scope.display_copy_env = true;
+    $scope.mods = {};
+    $scope.show_create = $scope.is_mods();
+  };
+
+  $scope.copy_env = function(name) {
+    $scope.mods = $scope.envs[name];
+    $scope.display_copy_env = false;
+    $scope.show_create = $scope.is_mods();
+  };
+
+  $scope.set_name = function(name) {
+    if (/^[a-zA-Z0-9_]+$/.test(name)) {
+        $scope.name_set = true;
+        $scope.name_invalid = false;
+    } else {
+        $scope.name_invalid = true;
+        $scope.name_set = false;
+        $scope.error_env_name = name;
+    };
+  }
+
+
+  $scope.create_env = function() {
+    $scope.loading = true;
+
+    $http.post(conn_string + '/api/envs/' + $scope.env_name + '/create', $scope.mods)
+        .then(function(response){
+            $scope.create_env_resp = response.data;
+        }).finally(function(){
+            $scope.loading = false;
+            $scope.loaded = true;
+        });
+  };
+
 });
 
 pemApp.controller('env_updateController', function($scope, $http, $routeParams) {
@@ -202,7 +291,6 @@ pemApp.controller('env_updateController', function($scope, $http, $routeParams) 
 
         $http.post(conn_string + '/api/envs/' + $routeParams.env + '/create', $scope.env_modules)
             .then(function(response){
-                console.log($scope.env_modules);
                 $scope.create_env_resp = response.data;
             }).finally(function(){
                 $scope.loading = false;
@@ -239,7 +327,6 @@ pemApp.controller('env_addmodController', function($scope, $http, $routeParams) 
 
         $http.post(conn_string + '/api/envs/' + $routeParams.env + '/create', $scope.env_modules)
             .then(function(response){
-                console.log($scope.env_modules);
                 $scope.create_env_resp = response.data;
             }).finally(function(){
                 $scope.loading = false;
@@ -294,8 +381,6 @@ pemApp.directive('ngConfirmBoxClick', [
                 var clickAction = attr.confirmedClick;
                 element.bind('click', function (event) {
                     if (window.confirm(msg)) {
-                        console.log('You said yes!');
-                        console.log(clickAction);
                         scope.$apply(clickAction);
                     }
                 });

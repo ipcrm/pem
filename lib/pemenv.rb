@@ -182,5 +182,6 @@ class PemEnv
     end
 
     @pem.filesync_deploy
+    @pem.refresh_envs
   end
 end

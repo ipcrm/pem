@@ -1,4 +1,83 @@
 <div class="jumbotron env_select">
-    <h3>Create new environment</h3>
+    <h3 ng-show="!name_set && !loaded">Create new environment</h3>
+    <h3 ng-show="name_set && !loaded">Creating new environment: {{env_name}}</h3>
+    <h3 ng-show="loaded">Created new environment: {{env_name}}!</h3>
+    <a ng-show="loaded" href="#!environments" class="btn btn-default" role="button">Done</a>
 </div>
 
+<div ng-show="name_invalid">
+    <p style="color:red">Enviornment name {{error_env_name}} is invalid, environment names must match [/^[a-zA-Z0-9_]+$/].  Please try again.</p>
+</div>
+<div ng-show="!name_set" class="form-group">
+    <label for="pwd">New Environment Name:</label>
+    <input ng-model="env_name" type="text" class="form-control" placeholder="Type name for new env...">
+    <button class="btn btn-default" ng-click="set_name(env_name)">Submit</button>
+</div>
+
+<div class="gimme_space">
+    <button ng-show="name_set && !loading && !loaded"
+        class="btn btn-default" ng-click="show_copy_env()" >Copy Existing Environment
+    </button>
+</div>
+
+<div class="gimme_space" ng-show="display_copy_env">
+    <select 
+        class="form-control" 
+        ng-model="copyEnv"
+        ng-change="copy_env(copyEnv)">
+        <option value="">Select an environment to copy...</option>
+        <option ng-repeat="(e,m) in envs" value="{{e}}">{{e}}</option>
+    </select>
+</div>
+
+
+<table class="table table-hover table-striped" ng-show="name_set && !loading && !loaded && !display_copy_env">
+    <thead>
+        <tr>
+            <th>Module</th>
+            <th>Version</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody ng-repeat="(m,v) in mods">
+        <tr class="tr_repeat">
+            <td>{{m}}</td>
+            <td>{{v}}</td>
+            <td>
+                <a confirmed-click="Remove(m)" 
+                    ng-confirm-box-click="Are you sure want to delete module {{m}}?">
+                <span class="glyphicon glyphicon-trash"></span>
+                </a>
+            </td>
+        </tr>
+    </tbody>
+    <tfoot>
+        <tr class="tr_repeat">
+            <td>
+                <select 
+                    class="form-control" 
+                    ng-model="Module"
+                    ng-change="get_versions(Module)">
+                    <option value="">Select a module to deploy...</option>
+                    <option ng-repeat="(n,v) in modules" value="{{n}}">{{n}}</option>
+                </select>
+            </td>
+            <td>
+                <p ng-show="!versions_found"><span>Select a module first...</span></p>
+                <select 
+                    ng-show="versions_found"
+                    class="form-control" 
+                    ng-model="Version">
+                    <option value="">Select a version to deploy...</option>
+                    <option ng-repeat="v in mod_versions" value="{{v}}">{{v}}</option>
+                </select>
+            </td>
+            <td><button ng-show="Version" class="btn btn-default" ng-click="Add()">Add</button></td>
+        </tr>
+    </tfoot>
+</table>
+
+<div id="create_button_env" ng-show="show_create && !loading && !loaded">
+    <button class="btn btn-default" ng-click="create_env()" >Create Environment {{env_name}}</button>
+</div>
+<div id="loader" ng-show="loading && !loaded"></div>
