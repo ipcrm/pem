@@ -270,6 +270,32 @@ class PemApp < Sinatra::Base
     send_file(f, filename: "#{params[:name]}.tar.gz", type: 'Application/octet-stream')
   end
 
+  # Delete an environment
+  #
+  # Request
+  #  POST /api/envs/delete
+  #  {"env":"<name>"}
+  #
+  # Response
+  #  {"status": "success"}
+  #
+  post '/api/envs/delete' do
+    content_type 'application/json'
+
+    begin
+      data = JSON.parse(request.body.read)
+      e = PemEnv.new(data['env'], pem)
+
+      raise('Invalid env supplied!') if data['env'].nil?
+
+      e.destroy(e.location,logger)
+      { 'status' => 'successful' }.to_json
+    rescue StandardError => f
+      Pem::log_error(f,logger)
+
+      { 'status' => 'failed' }.to_json
+    end
+  end
 
   # Get forge modules and versions for the supplied search string
   #

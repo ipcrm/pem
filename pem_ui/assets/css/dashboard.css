@@ -120,6 +120,13 @@ th {
   margin: 15px auto 15px auto;
 }
 
+.gimme_space {
+  padding: 15px 0 15px 0;
+}
+
+#create_button_env{
+  height: 300px;
+}
 
 #loader {
   position: absolute;
