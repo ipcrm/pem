@@ -31,7 +31,7 @@
             <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="compare_{{name}}">
               <li role="menuitem" ng-repeat="(other_env,mods) in envs" ng-if="other_env != name"><a href="#!env_compare/{{name}}/{{other_env}}">{{other_env}}</a>
             </ul>
-        <a href="#!env_addmod/{{name}}" class="btn btn-default" role="button">Add Module</a>
+        <a class="btn btn-default" role="button" ng-click="addmodule[name] = true" >Add Module</a>
         <a href="/api/envs/{{name}}/download" class="btn btn-default" role="button">Download</a>
         <a confirmed-click="delete_env(name)" class="btn btn-danger" role="button"
         ng-confirm-box-click="Are you sure want to delete environment {{name}}?">Delete</a>
@@ -63,6 +63,30 @@
             </td>
           </tr>
         </tbody>
+        <tfoot ng-show="addmodule[name]">
+          <tr class="tr_repeat">
+            <td>
+              <select
+              class="form-control"
+              ng-model="Module"
+              ng-change="get_versions(Module)">
+                <option value="">Select a module to deploy...</option>
+                <option ng-repeat="(n,v) in modules" value="{{n}}">{{n}}</option>
+              </select>
+            </td>
+            <td>
+              <p ng-show="!versions_found"><span>Select a module first...</span></p>
+              <select◇
+                 ng-show="versions_found"
+                 class="form-control"◇
+                 ng-model="Version">
+                <option value="">Select a version to deploy...</option>
+                <option ng-repeat="v in mod_versions" value="{{v}}">{{v}}</option>
+              </select>
+            </td>
+            <td><button ng-show="Version" class="btn btn-default" ng-click="Add()">Add</button></td>
+          </tr>
+        </tfoot>
       </table>
     </div>
   </div>
