@@ -68,23 +68,21 @@
             <td>
               <select
               class="form-control"
-              ng-model="Module"
-              ng-change="get_versions(Module)">
+              ng-model="moduleAdd[name]" >
                 <option value="">Select a module to deploy...</option>
-                <option ng-repeat="(n,v) in modules" value="{{n}}">{{n}}</option>
+                <option ng-repeat="(n,v) in allmodules" value="{{n}}">{{n}}</option>
               </select>
             </td>
             <td>
-              <p ng-show="!versions_found"><span>Select a module first...</span></p>
-              <select◇
-                 ng-show="versions_found"
-                 class="form-control"◇
-                 ng-model="Version">
+              <select
+                 ng-disabled="moduleAdd[name]"
+                 class="form-control"
+                 ng-model="versionAdd[name]">
                 <option value="">Select a version to deploy...</option>
-                <option ng-repeat="v in mod_versions" value="{{v}}">{{v}}</option>
+                <option ng-repeat="v in allmodules[moduleAdd[name]]" value="{{v}}">{{v}}</option>
               </select>
             </td>
-            <td><button ng-show="Version" class="btn btn-default" ng-click="Add()">Add</button></td>
+            <td><button ng-disabled="Version" class="btn btn-default" ng-click="Add()">Add</button></td>
           </tr>
         </tfoot>
       </table>
