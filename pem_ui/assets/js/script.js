@@ -137,14 +137,14 @@ pemApp.controller('envController', function($scope, $http, $location) {
     $scope.versionAdd= {};
     $scope.addmodule = {};
 
-    $http.get(conn_string + '/api/envs')
-      .then(function(response){
-        $scope.envs = response.data
-    });
-
     $http.get(conn_string + '/api/modules')
       .then(function(response){
         $scope.allmodules = response.data
+    });
+
+    $http.get(conn_string + '/api/envs')
+      .then(function(response){
+        $scope.envs = response.data
     });
 
     $scope.closeAlert = function(index) {
@@ -155,22 +155,33 @@ pemApp.controller('envController', function($scope, $http, $location) {
         $location.path('/env_remove_mod/' + env + "/" + name);
     };
 
+    $scope.acceptableModules = function(env){
+        var knownmods = Object.keys($scope.allmodules);
+        var envmods   = Object.keys($scope.envs[env]);
+
+        for (i in envmods) {
+          var pos = knownmods.indexOf(envmods[i]);
+          if (pos != -1) {
+            knownmods.splice(pos, 1);
+          }
+        }
+        return knownmods;
+    };
+
     $scope.delete_env = function(env) {
-        $scope.loading = true;
+        $scope.waiting = true;
         $scope.deleted_env = env;
         var post_data = {};
         post_data['env'] = env;
         $http.post(conn_string + '/api/envs/delete', post_data)
-            .then(function(response){
-                $scope.delete_rsp = response.data;
+            .then(function successCallback(response){
+                $scope.alerts.push({ type: 'success', msg: 'Successfully deleted \''+env+'\' environment!' });
+                delete $scope.envs[env];
+            }, function errorCallback(response){
+                $scope.alerts.push({ type: 'danger', msg: 'Failed to delete \''+env+'\' environment!' });
             }).finally(function(){
-                $scope.loading = false;
-                $scope.loaded = true;
+                $scope.waiting = false;
         });
-    };
-
-    $scope.confirm_deleted = function() {
-        $scope.loaded = false;
     };
 
 

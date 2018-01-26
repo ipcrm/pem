@@ -5,17 +5,6 @@
   <hr />
 </div>
 
-<div class="jumbotron env_select" ng-show="loaded">
-  <h3>Removed environment {{deleted_env}}!</h3>
-  <a href="#!/" class="btn btn-default" role="button">Done</a>
-</div>
-
-<div class="jumbotron env_select" ng-show="loading">
-  <h3>Removing environment {{deleted_env}}</h3>
-</div>
-
-
-
 <div class="envs_create_new" ng-show="!loading && !loaded">
   <a href="#!env_create" class="btn btn-default" role="button">Create New Environment</a>
 </div>
@@ -72,7 +61,7 @@
               class="form-control"
               ng-model="moduleAdd[name]" >
                 <option value="">Select a module to deploy...</option>
-                <option ng-repeat="(n,v) in allmodules" value="{{n}}">{{n}}</option>
+                <option ng-repeat="n in acceptableModules(name)" value="{{n}}">{{n}}</option>
               </select>
             </td>
             <td>
