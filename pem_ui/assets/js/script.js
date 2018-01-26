@@ -132,6 +132,8 @@ pemApp.controller('mod_createController', function($scope, $http) {
 });
 
 pemApp.controller('envController', function($scope, $http, $location) {
+    $scope.alerts = [];
+
     $http.get(conn_string + '/api/envs')
       .then(function(response){
         $scope.envs = response.data
@@ -163,6 +165,31 @@ pemApp.controller('envController', function($scope, $http, $location) {
     $scope.confirm_deleted = function() {
         $scope.loaded = false;
     };
+
+
+    $scope.addModuleToEnv = function(env) {
+
+      var envmods = $scope.envs[env];
+      envmods[$scope.moduleAdd[env]] = $scope.versionAdd[env];
+
+      $scope.loading = true;
+      $scope.loaded = false;
+
+      $http.post(conn_string + '/api/envs/' + env + '/create', envmods)
+        .then( function successCallback(response) {
+          $scope.envs[env] = envmods;
+          $scope.alerts.push({ type: 'success', msg: 'Successfully added module \''+moduleAdd[env]+'\' to the \''+env+'\' environment' });
+          $scope.moduleAdd[env] = false;
+          $scope.versionAdd[env] = false;
+          $scope.addmodule[env] = false;
+        }, function errorCallback(response) {
+          $scope.alerts.push({ type: 'danger', msg: 'Failed to add module \''+moduleAdd[env]+'\' to the \''+env+'\' environment' });
+        }).finally(function(){
+          $scope.loading = false;
+          $scope.loaded = true;
+        });
+    };
+
 });
 
 pemApp.controller('env_compareController', function($scope, $http, $routeParams) {
