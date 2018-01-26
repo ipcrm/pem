@@ -172,3 +172,12 @@ th {
   from{ bottom:-100px; opacity:0 } 
   to{ bottom:0; opacity:1 }
 }
+
+#cover {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  z-index: 1; /* make sure logout_box has a z-index of 2 */
+  background-color: #ddd;
+  opacity: 0.3;
+}

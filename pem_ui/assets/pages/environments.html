@@ -1,35 +1,33 @@
+<div id="cover" ng-show="waiting">Performing Changes...</div>
+
 
 <div ng-show="!loading && !loaded">
   <h1>Deployed Code Environments</h1>
   <hr />
 </div>
 
-<div class="jumbotron env_select" ng-show="loaded">
-  <h3>Removed environment {{deleted_env}}!</h3>
-  <a href="#!/" class="btn btn-default" role="button">Done</a>
-</div>
-
-<div class="jumbotron env_select" ng-show="loading">
-  <h3>Removing environment {{deleted_env}}</h3>
-</div>
-
-
 
 <div class="envs_create_new" ng-show="!loading && !loaded">
   <a href="#!env_create" class="btn btn-default" role="button">Create New Environment</a>
 </div>
+<div uib-alert ng-repeat="alert in alerts" ng-class="'alert-' + (alert.type || 'warning')" close="closeAlert($index)">{{alert.msg}}</div>
 <uib-accordion  close-others="oneAtATime" ng-show="!loading && !loaded">
-  <div uib-accordion-group class="panel-default" ng-repeat="(name,modules) in envs" is-open="status.open">
+  <div uib-accordion-group class="panel-default" ng-repeat="(name,modules) in envs" is-open="status.open" >
     <uib-accordion-heading>
       <icon class="glyphicon" ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}" />
       <span class="expand_span">{{name}}</span>
     </uib-accordion-heading>
     <div class="panel-body">
-      <div class="btn-group env_button_grp">
-        <a href="#!env_compare_prep/{{name}}" class="btn btn-default" role="button">Compare</a>
-        <a href="#!env_addmod/{{name}}" class="btn btn-default" role="button">Add Module</a>
+      <div class="btn-group env_button_grp" uib-dropdown>
+        <button id="comapre_{{name}}" class="btn btn-primary" uib-dropdown-toggle>Compare<span class="caret"></span>
+        </button>
+            <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="compare_{{name}}">
+              <li role="menuitem" ng-repeat="(other_env,mods) in envs" ng-if="other_env != name"><a href="#!env_compare/{{name}}/{{other_env}}">{{other_env}}</a>
+            </ul>
+        <a class="btn btn-default" role="button" ng-click="addmodule[name] = true" >Add Module</a>
         <a href="/api/envs/{{name}}/download" class="btn btn-default" role="button">Download</a>
-        <a confirmed-click="delete_env(name)" class="btn btn-default" role="button"
+        <a confirmed-click="delete_env(name)" class="btn btn-danger" role="button"
+
         ng-confirm-box-click="Are you sure want to delete environment {{name}}?">Delete</a>
       </div>
       <table class="table table-hover table-striped">
@@ -45,10 +43,18 @@
             <td>{{ n }}</td>
             <td>
               <a href="#!mod_detail/{{n}}/{{v}}"
-                  class="btn btn-default" role="button">{{ v }}</a>
+                  class="btn btn-default" role="button" ng-show="!modifymod[name+n]">{{ v }}</a>
+              <select ng-init"newversion[name+n] = v" class="form-control" ng-model="newversion[name+n]" ng-show="modifymod[name+n]" >
+                <option value="">Current Version Is {{v}}</option>
+                <option ng-repeat="v in allmodules[n]" value="{{v}}">{{v}}</option>
+              </select>
+              <span class="input-group-btn">
+              <button ng-disabled="!newversion[name+n]" ng-show="modifymod[name+n]" class="btn btn-success btn-sm" ng-click="updateEnvMod(name,n,newversion[name+n])">Update</button>
+              <button ng-show="modifymod[name+n]" class="btn btn-default btn-sm" ng-click="modifymod[name+n] = false; newversion[name+n] = null;">Cancel</button>
+              </span>
             </td>
             <td>
-              <a href="#!env_update/{{name}}/{{n}}/{{v}}">
+              <a ng-click="modifymod[name+n] = true">
                 <span class="glyphicon glyphicon-edit"></span>
               </a>
               &nbsp;
@@ -59,10 +65,32 @@
             </td>
           </tr>
         </tbody>
+        <tfoot ng-show="addmodule[name]">
+          <tr class="tr_repeat">
+            <td>
+              <select
+              class="form-control"
+              ng-model="moduleAdd[name]" >
+                <option value="">Select a module to deploy...</option>
+                <option ng-repeat="n in acceptableModules(name)" value="{{n}}">{{n}}</option>
+              </select>
+            </td>
+            <td>
+              <select
+                 ng-disabled="!moduleAdd[name]"
+                 class="form-control"
+                 ng-model="versionAdd[name]">
+                <option value="">Select a version to deploy...</option>
+                <option ng-repeat="v in allmodules[moduleAdd[name]]" value="{{v}}">{{v}}</option>
+              </select>
+            </td>
+            <td><button ng-disabled="!versionAdd[name]" class="btn btn-default" ng-click="addModuleToEnv(name)">Add</button></td>
+          </tr>
+        </tfoot>
       </table>
     </div>
   </div>
 </uib-accordion>
 
+<div id="loader" ng-show="loading || waiting"></div>
 
-<div id="loader" ng-show="loading"></div>
