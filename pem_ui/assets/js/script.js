@@ -133,6 +133,9 @@ pemApp.controller('mod_createController', function($scope, $http) {
 
 pemApp.controller('envController', function($scope, $http, $location) {
     $scope.alerts = [];
+    $scope.moduleAdd = {};
+    $scope.versionAdd= {};
+    $scope.addmodule = {};
 
     $http.get(conn_string + '/api/envs')
       .then(function(response){
@@ -143,6 +146,10 @@ pemApp.controller('envController', function($scope, $http, $location) {
       .then(function(response){
         $scope.allmodules = response.data
     });
+
+    $scope.closeAlert = function(index) {
+      $scope.alerts.splice(index, 1);
+    };
 
     $scope.remove_module = function(env,name) {
         $location.path('/env_remove_mod/' + env + "/" + name);
@@ -169,24 +176,22 @@ pemApp.controller('envController', function($scope, $http, $location) {
 
     $scope.addModuleToEnv = function(env) {
 
-      var envmods = $scope.envs[env];
+      var envmods = Object.assign({}, $scope.envs[env]);
       envmods[$scope.moduleAdd[env]] = $scope.versionAdd[env];
 
-      $scope.loading = true;
-      $scope.loaded = false;
+      $scope.waiting = true;
 
       $http.post(conn_string + '/api/envs/' + env + '/create', envmods)
         .then( function successCallback(response) {
-          $scope.envs[env] = envmods;
-          $scope.alerts.push({ type: 'success', msg: 'Successfully added module \''+moduleAdd[env]+'\' to the \''+env+'\' environment' });
+          $scope.alerts.push({ type: 'success', msg: 'Successfully added module \''+$scope.moduleAdd[env]+'\' to the \''+env+'\' environment' });
           $scope.moduleAdd[env] = false;
           $scope.versionAdd[env] = false;
           $scope.addmodule[env] = false;
+          $scope.envs[env] = envmods;
         }, function errorCallback(response) {
-          $scope.alerts.push({ type: 'danger', msg: 'Failed to add module \''+moduleAdd[env]+'\' to the \''+env+'\' environment' });
+          $scope.alerts.push({ type: 'danger', msg: 'Failed to add module \''+$scope.moduleAdd[env]+'\' to the \''+env+'\' environment' });
         }).finally(function(){
-          $scope.loading = false;
-          $scope.loaded = true;
+          $scope.waiting = false;
         });
     };
 
