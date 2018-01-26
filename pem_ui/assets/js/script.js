@@ -54,11 +54,6 @@ pemApp.config(function($routeProvider) {
             controller  : 'env_addmodController'
         })
 
-        .when('/env_remove_mod/:env/:module', {
-            templateUrl : 'assets/pages/env_remove_mod.html',
-            controller  : 'env_remove_modController'
-        })
-
         .otherwise({redirectTo: '/environments'});
 
 });
