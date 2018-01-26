@@ -75,7 +75,7 @@
             </td>
             <td>
               <select
-                 ng-disabled="moduleAdd[name]"
+                 ng-disabled="!moduleAdd[name]"
                  class="form-control"
                  ng-model="versionAdd[name]">
                 <option value="">Select a version to deploy...</option>

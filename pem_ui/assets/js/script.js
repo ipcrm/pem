@@ -137,6 +137,11 @@ pemApp.controller('envController', function($scope, $http, $location) {
         $scope.envs = response.data
     });
 
+    $http.get(conn_string + '/api/modules')
+      .then(function(response){
+        $scope.allmodules = response.data
+    });
+
     $scope.remove_module = function(env,name) {
         $location.path('/env_remove_mod/' + env + "/" + name);
     };
