@@ -1,0 +1,8 @@
+<div class="jumbotron env_select" ng-show="loading">
+    <h3>Updating environment [{{env}}], please wait...</h3>
+    <div id="loader" ng-show="loading && !loaded"></div>
+</div>
+<div class="jumbotron env_select" ng-show="loaded">
+    <h3>Successfully removed module [{{module}}] from environment [{{env}}]!</h3>
+    <a href="#!environments" class="btn btn-default" role="button">Done</a>
+</div>

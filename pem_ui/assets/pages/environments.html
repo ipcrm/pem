@@ -1,9 +1,11 @@
 <div id="cover" ng-show="waiting">Performing Changes...</div>
 
+
 <div ng-show="!loading && !loaded">
   <h1>Deployed Code Environments</h1>
   <hr />
 </div>
+
 
 <div class="envs_create_new" ng-show="!loading && !loaded">
   <a href="#!env_create" class="btn btn-default" role="button">Create New Environment</a>
@@ -25,6 +27,7 @@
         <a class="btn btn-default" role="button" ng-click="addmodule[name] = true" >Add Module</a>
         <a href="/api/envs/{{name}}/download" class="btn btn-default" role="button">Download</a>
         <a confirmed-click="delete_env(name)" class="btn btn-danger" role="button"
+
         ng-confirm-box-click="Are you sure want to delete environment {{name}}?">Delete</a>
       </div>
       <table class="table table-hover table-striped">
@@ -89,5 +92,5 @@
   </div>
 </uib-accordion>
 
-
 <div id="loader" ng-show="loading || waiting"></div>
+

@@ -54,6 +54,7 @@ pemApp.config(function($routeProvider) {
             controller  : 'env_addmodController'
         })
 
+
         .otherwise({redirectTo: '/environments'});
 
 });
@@ -127,6 +128,7 @@ pemApp.controller('mod_createController', function($scope, $http) {
 });
 
 pemApp.controller('envController', function($scope, $http, $location) {
+
     $scope.alerts = [];
     $scope.moduleAdd = {};
     $scope.versionAdd= {};
@@ -138,10 +140,8 @@ pemApp.controller('envController', function($scope, $http, $location) {
         $scope.allmodules = response.data
     });
 
-    $http.get(conn_string + '/api/envs')
-      .then(function(response){
-        $scope.envs = response.data
-    });
+
+
 
     $scope.closeAlert = function(index) {
       $scope.alerts.splice(index, 1);
@@ -199,6 +199,7 @@ pemApp.controller('envController', function($scope, $http, $location) {
 
     $scope.delete_env = function(env) {
         $scope.waiting = true;
+
         $scope.deleted_env = env;
         var post_data = {};
         post_data['env'] = env;
@@ -465,3 +466,4 @@ pemApp.directive('ngConfirmBoxClick', [
         };
     }
 ]);
+
