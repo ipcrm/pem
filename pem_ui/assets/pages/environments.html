@@ -40,10 +40,18 @@
             <td>{{ n }}</td>
             <td>
               <a href="#!mod_detail/{{n}}/{{v}}"
-                  class="btn btn-default" role="button">{{ v }}</a>
+                  class="btn btn-default" role="button" ng-show="!modifymod[name+n]">{{ v }}</a>
+              <select ng-init"newversion[name+n] = v" class="form-control" ng-model="newversion[name+n]" ng-show="modifymod[name+n]" >
+                <option value="">Current Version Is {{v}}</option>
+                <option ng-repeat="v in allmodules[n]" value="{{v}}">{{v}}</option>
+              </select>
+              <span class="input-group-btn">
+              <button ng-disabled="!newversion[name+n]" ng-show="modifymod[name+n]" class="btn btn-success btn-sm" ng-click="updateEnvMod(name,n,newversion[name+n])">Update</button>
+              <button ng-show="modifymod[name+n]" class="btn btn-default btn-sm" ng-click="modifymod[name+n] = false; newversion[name+n] = null;">Cancel</button>
+              </span>
             </td>
             <td>
-              <a href="#!env_update/{{name}}/{{n}}/{{v}}">
+              <a ng-click="modifymod[name+n] = true">
                 <span class="glyphicon glyphicon-edit"></span>
               </a>
               &nbsp;

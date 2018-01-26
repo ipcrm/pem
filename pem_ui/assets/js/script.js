@@ -131,6 +131,7 @@ pemApp.controller('envController', function($scope, $http, $location) {
     $scope.moduleAdd = {};
     $scope.versionAdd= {};
     $scope.addmodule = {};
+    $scope.modifymod = {};
 
     $http.get(conn_string + '/api/modules')
       .then(function(response){
@@ -162,6 +163,26 @@ pemApp.controller('envController', function($scope, $http, $location) {
           $scope.waiting = false;
         });
     };
+
+    $scope.updateEnvMod = function(env,mod,version){
+
+      $scope.waiting = true;
+
+      var envmods = Object.assign({}, $scope.envs[env]);
+      envmods[mod] = version;;
+
+      $http.post(conn_string + '/api/envs/' + env + '/create', envmods)
+        .then(function successCallback(response){
+          $scope.alerts.push({ type: 'success', msg: 'Successfully module \''+mod+'\' to version \''+version+'\' in the \''+env+'\' environment!' });
+          $scope.envs[env][mod] = version;
+          $scope.modifymod[env+mod] = false;
+        }, function errorCallback(response){
+          $scope.alerts.push({ type: 'danger', msg: 'Failed to update module \''+mod+'\' to version \''+version+'\' in the \''+env+'\' environment!' });
+        }).finally(function(){
+          $scope.waiting = false;
+        });
+
+    }
 
     $scope.acceptableModules = function(env){
         var knownmods = Object.keys($scope.allmodules);
