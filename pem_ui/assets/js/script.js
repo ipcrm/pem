@@ -54,6 +54,10 @@ pemApp.config(function($routeProvider) {
             controller  : 'env_addmodController'
         })
 
+        .when('/env_remove_mod/:env/:module', {
+            templateUrl : 'assets/pages/env_remove_mod.html',
+            controller  : 'env_remove_modController'
+        })
 
         .otherwise({redirectTo: '/environments'});
 
@@ -128,114 +132,32 @@ pemApp.controller('mod_createController', function($scope, $http) {
 });
 
 pemApp.controller('envController', function($scope, $http, $location) {
-
-    $scope.alerts = [];
-    $scope.moduleAdd = {};
-    $scope.versionAdd= {};
-    $scope.addmodule = {};
-    $scope.modifymod = {};
-
-    $http.get(conn_string + '/api/modules')
+    $http.get(conn_string + '/api/envs')
       .then(function(response){
-        $scope.allmodules = response.data
+        $scope.envs = response.data
     });
 
-
-
-
-    $scope.closeAlert = function(index) {
-      $scope.alerts.splice(index, 1);
-    };
-
-    $scope.remove_module = function(env,mod) {
-      $scope.waiting = true;
-
-      var envmods = Object.assign({}, $scope.envs[env]);
-      delete envmods[mod];
-
-      $http.post(conn_string + '/api/envs/' + env + '/create', envmods)
-        .then(function successCallback(response){
-          $scope.alerts.push({ type: 'success', msg: 'Successfully deleted module \''+mod+'\' from the \''+env+'\' environment!' });
-          delete $scope.envs[env][mod];
-        }, function errorCallback(response){
-          $scope.alerts.push({ type: 'danger', msg: 'Failed to delete module \''+mod+'\' from the \''+env+'\' environment!' });
-        }).finally(function(){
-          $scope.waiting = false;
-        });
-    };
-
-    $scope.updateEnvMod = function(env,mod,version){
-
-      $scope.waiting = true;
-
-      var envmods = Object.assign({}, $scope.envs[env]);
-      envmods[mod] = version;;
-
-      $http.post(conn_string + '/api/envs/' + env + '/create', envmods)
-        .then(function successCallback(response){
-          $scope.alerts.push({ type: 'success', msg: 'Successfully module \''+mod+'\' to version \''+version+'\' in the \''+env+'\' environment!' });
-          $scope.envs[env][mod] = version;
-          $scope.modifymod[env+mod] = false;
-        }, function errorCallback(response){
-          $scope.alerts.push({ type: 'danger', msg: 'Failed to update module \''+mod+'\' to version \''+version+'\' in the \''+env+'\' environment!' });
-        }).finally(function(){
-          $scope.waiting = false;
-        });
-
-    }
-
-    $scope.acceptableModules = function(env){
-        var knownmods = Object.keys($scope.allmodules);
-        var envmods   = Object.keys($scope.envs[env]);
-
-        for (i in envmods) {
-          var pos = knownmods.indexOf(envmods[i]);
-          if (pos != -1) {
-            knownmods.splice(pos, 1);
-          }
-        }
-        return knownmods;
+    $scope.remove_module = function(env,name) {
+        $location.path('/env_remove_mod/' + env + "/" + name);
     };
 
     $scope.delete_env = function(env) {
-        $scope.waiting = true;
-
+        $scope.loading = true;
         $scope.deleted_env = env;
         var post_data = {};
         post_data['env'] = env;
         $http.post(conn_string + '/api/envs/delete', post_data)
-            .then(function successCallback(response){
-                $scope.alerts.push({ type: 'success', msg: 'Successfully deleted \''+env+'\' environment!' });
-                delete $scope.envs[env];
-            }, function errorCallback(response){
-                $scope.alerts.push({ type: 'danger', msg: 'Failed to delete \''+env+'\' environment!' });
+            .then(function(response){
+                $scope.delete_rsp = response.data;
             }).finally(function(){
-                $scope.waiting = false;
+                $scope.loading = false;
+                $scope.loaded = true;
         });
     };
 
-
-    $scope.addModuleToEnv = function(env) {
-
-      var envmods = Object.assign({}, $scope.envs[env]);
-      envmods[$scope.moduleAdd[env]] = $scope.versionAdd[env];
-
-      $scope.waiting = true;
-
-      $http.post(conn_string + '/api/envs/' + env + '/create', envmods)
-        .then( function successCallback(response) {
-          $scope.alerts.push({ type: 'success', msg: 'Successfully added module \''+$scope.moduleAdd[env]+'\' to the \''+env+'\' environment' });
-          $scope.moduleAdd[env] = false;
-          $scope.versionAdd[env] = false;
-          $scope.addmodule[env] = false;
-          $scope.envs[env] = envmods;
-        }, function errorCallback(response) {
-          $scope.alerts.push({ type: 'danger', msg: 'Failed to add module \''+$scope.moduleAdd[env]+'\' to the \''+env+'\' environment' });
-        }).finally(function(){
-          $scope.waiting = false;
-        });
+    $scope.confirm_deleted = function() {
+        $scope.loaded = false;
     };
-
 });
 
 pemApp.controller('env_compareController', function($scope, $http, $routeParams) {
@@ -466,4 +388,3 @@ pemApp.directive('ngConfirmBoxClick', [
         };
     }
 ]);
-
