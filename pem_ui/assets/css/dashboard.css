@@ -9,12 +9,12 @@
  * Typography
  */
 h1 {
- overflow: hidden;
- text-overflow: ellipsis;
- white-space: nowrap;
- color: #444;
- font-size: 36px;
- margin-top: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #444;
+  font-size: 36px;
+  margin-top: 80px;
 }
 
 .env_button_grp {
@@ -53,7 +53,7 @@ h1 {
 
 .logo_span {
   color: white;
-/*  margin-left: 30px; */
+  /*  margin-left: 30px; */
 }
 
 
