@@ -2,26 +2,19 @@
 basedir: /etc/puppetlabs/code-staging
 
 # FQDN of the master server (for filesync endpoints - you should be running PEM on the master)
+# This needs to be a valid name your MoM will respond to.
 # example: master.inf.puppet.vm
-master:
-
-# PEM Hostname and port - injected into the config for js
-## Likely development values
-pem_host: localhost
-pem_port: 9292
-
-## Likely prod values
-#pem_host: master.inf.puppet.vm
-#pem_port: 9292
-
+master: 
 
 # Master certificate; used for filesync auth
 # /etc/puppetlabs/puppet/ssl/certs/<FQDN>.pem
-filesync_cert:
+#filesync_cert: /etc/puppetlabs/puppet/ssl/certs/<FQDN>.pem
+filesync_cert: 
 
 # private_key; used for filesync auth
 # /etc/puppetlabs/puppet/ssl/private_keys/<FQDN>.pem
-filesync_cert_key:
+#filesync_cert_key: /etc/puppetlabs/puppet/ssl/certs/<FQDN>.pem
+filesync_cert_key: 
 
 # CA Certificate to use
 filesync_ca_cert: /etc/puppetlabs/puppet/ssl/certs/ca.pem
