@@ -1,6 +1,6 @@
 // script.js
 
-var conn_string = 'http://' + master + ":" + port;
+var conn_string = location.origin;
 
 // create the module and name it scotchApp
 var pemApp = angular.module("pemApp", ['ngRoute','ui.bootstrap']);
