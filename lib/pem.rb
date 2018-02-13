@@ -82,42 +82,60 @@ class Pem
       raise(err)
     end
 
+    #will make a scalar value an array, or will leave an array as an array
+    # it's ruby magic, and some people hate it, but it's just so damn simple!
+    versions = [*data[version]]
+
     begin
-      tardir = "#{@conf['mod_dir']}/#{name}/#{data['version']}"
-      moddir = "#{@conf['mod_dir']}/#{name}"
 
-      FileUtils.mkdir(moddir) unless Dir.exist?(moddir)
-      purge_mod(name, data['version']) if Dir.exist?(tardir)
+      versions.each do |version|
 
-      case data['type']
-      when 'forge'
-        PuppetForge.user_agent = 'pem/1.0.0'
+        moddir = "#{@conf['mod_dir']}/#{name}"
+        tardir = "#{moddir}/#{data['version']}"
 
-        release_slug = "#{name}-#{data['version']}"
-        release_tarball = release_slug + '.tar.gz'
+        FileUtils.mkdir(moddir) unless Dir.exist?(moddir)
+        purge_mod(name, data['version']) if Dir.exist?(tardir)
 
-        release = PuppetForge::Release.find release_slug
-
-        Dir.chdir('/tmp') do
-          release.download(Pathname(release_tarball))
-          release.verify(Pathname(release_tarball))
-          PuppetForge::Unpacker.unpack(release_tarball, tardir, '/tmp')
+        case data['type']
+        when 'forge'
+          deploy_forge_module(name,version,tardir)
+        when 'git'
+          deploy_git_module(name,version,tardir,data[source])
+        when 'upload'
+          deploy_uploaded_module(name,version,tardir,data[file])
         end
-        @logger.debug('Pem::deploy_mod') { "pem::deploy_mod deploy #{name} @ #{data['version']} succeeded" }
-
-      when 'git'
-        repo = Rugged::Repository.clone_at(data['source'], tardir)
-        repo.checkout(data['version'])
-        @logger.debug('Pem::deploy_mod') { "#{name} @ #{data['version']} checked out successfully" }
-
-      when 'upload'
-        PuppetForge::Unpacker.unpack(data['file'].path, tardir, '/tmp')
-        @logger.debug('Pem::deploy_mod') { "pem::deploy_mod deploy #{name} @ #{data['version']} succeeded" }
       end
     rescue StandardError => err
       Pem.log_error(err, @logger)
       raise(err)
     end
+  end
+
+  def deploy_uploaded_module(name,version,tardir,file)
+    PuppetForge::Unpacker.unpack(file.path, tardir, '/tmp')
+    @logger.debug('Pem::deploy_mod') { "pem::deploy_mod deploy #{name} @ #{version} succeeded" }
+  end
+
+  def deploy_git_module(name,version,tardir,source)
+    repo = Rugged::Repository.clone_at(source, tardir)
+    repo.checkout(version)
+    @logger.debug('Pem::deploy_mod') { "#{name} @ #{version} checked out successfully from Git source #{source}" }
+  end
+
+  def deploy_forge_module(name, version, tardir)
+    PuppetForge.user_agent = 'pem/1.0.0'
+
+    release_slug = "#{name}-#{version}"
+    release_tarball = release_slug + '.tar.gz'
+
+    release = PuppetForge::Release.find release_slug
+
+    Dir.chdir('/tmp') do
+      release.download(Pathname(release_tarball))
+      release.verify(Pathname(release_tarball))
+      PuppetForge::Unpacker.unpack(release_tarball, tardir, '/tmp')
+    end
+    @logger.debug('Pem::deploy_mod') { "pem::deploy_mod deploy #{name} @ #{version}from the PuppetForge has succeeded" }
   end
 
   # Delete a module from global module dir
