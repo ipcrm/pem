@@ -34,11 +34,17 @@ h1 {
 
 .navbar-fixed-left .navbar-nav > li {
   float: none;  /* Cancel default li float: left */
-  width: 179px;
+  width: 167px;
   padding-left: 10px; 
 }
 .navbar-fixed-left .navbar-nav > li > a {
   color: #53d4b0;
+}
+
+.navbar-nav > .active > a {
+  background-color: #117f6c;
+  border-radius: 3px;
+  padding: 5px 0 5px 20px;
 }
 
 .navbar-brand {
