@@ -41,6 +41,7 @@ h1 {
   float: none;  /* Cancel default li float: left */
   width: 167px;
   padding-left: 10px; 
+  font-size: 13px;
 }
 .navbar-fixed-left .navbar-nav > li > a {
   color: #53d4b0;
