@@ -61,22 +61,15 @@
         class="form-control"
         ng-model="selected_version" >
         <option value="">Select a module version to deploy...</option>
-        <option ng-repeat="v in mod_versions" value="{{n}}">{{n}}</option>
+        <option ng-repeat="v in mod_versions" value="{{v}}">{{v}}</option>
         </select>
       </td>
       <td><button ng-disabled="!selected_version" class="btn btn-default" ng-click="addVersionToDeploy(selected_version)">Add</button></td>
     </tr>
   </tfoot>
-</table>
-
-<select 
-    class="form-control float-right" 
-    ng-show="mod_found && !loading && !loaded"
-    ng-model="module.version"
-    ng-change="add_module(module.name,module.version)">
-    <option value="">Select a version to deploy...</option>
-    <option ng-repeat="v in mod_versions" value="{{v}}">{{v}}</option>
-</select>
+</table
+>
+<button ng-show="mod_found && !loading && !loaded" ng-disabled="!selected_version" class="float-left btn btn-default" ng-click="addVersionToDeploy(selected_version)">Publish</button>
 
 <div id="loader" ng-show="loading"></div>
 
