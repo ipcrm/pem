@@ -8,6 +8,11 @@
 /*
  * Typography
  */
+
+body {
+  font-family: OpenSans,Arial,sans-serif;
+}
+
 h1 {
   overflow: hidden;
   text-overflow: ellipsis;
