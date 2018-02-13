@@ -84,7 +84,7 @@ class Pem
 
     #will make a scalar value an array, or will leave an array as an array
     # it's ruby magic, and some people hate it, but it's just so damn simple!
-    versions = [*data[version]]
+    versions = Array(data['version'])
 
     begin
 
@@ -93,6 +93,7 @@ class Pem
         moddir = "#{@conf['mod_dir']}/#{name}"
         tardir = "#{moddir}/#{data['version']}"
 
+        @logger.debug('Pem::deploy_mod') {"deploying module #{name} at version #{version} - Creating directory structure"}
         FileUtils.mkdir(moddir) unless Dir.exist?(moddir)
         purge_mod(name, data['version']) if Dir.exist?(tardir)
 
