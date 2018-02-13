@@ -43,6 +43,32 @@
 <div id="loader" ng-show="loading"></div>
 
 <h4 ng-show="mod_found && !loading && !loaded">Add Module {{module.name}}:</h4>
+<table ng-show="mod_found && !loading && !loaded" class="table table-hover table-striped">
+  <thead>
+    <tr>
+      <th>Versions to Deploy</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="v in selected_versions" class="tr_repeat">
+      <td>{{ n }}</td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr class="tr_repeat">
+      <td>
+        <select
+        class="form-control"
+        ng-model="selected_version" >
+        <option value="">Select a module version to deploy...</option>
+        <option ng-repeat="v in mod_versions" value="{{n}}">{{n}}</option>
+        </select>
+      </td>
+      <td><button ng-disabled="!selected_version" class="btn btn-default" ng-click="addVersionToDeploy(selected_version)">Add</button></td>
+    </tr>
+  </tfoot>
+</table>
+
 <select 
     class="form-control float-right" 
     ng-show="mod_found && !loading && !loaded"

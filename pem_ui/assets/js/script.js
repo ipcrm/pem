@@ -76,6 +76,8 @@ pemApp.controller('mod_detailController', function($scope, $http, $routeParams) 
 
 pemApp.controller('mod_createController', function($scope, $http) {
 
+  $scope.selected_versionss = [];
+
   $scope.search_for_mod = function(search_string) {
     $scope.loading = true;
 
@@ -123,6 +125,10 @@ pemApp.controller('mod_createController', function($scope, $http) {
         $scope.loading = false;
         $scope.loaded = true;
       });
+  }
+
+  $scope.addVersionToDeploy = function(version){
+    $scope.selected_versions.push(version);
   }
 });
 
