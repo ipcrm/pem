@@ -96,7 +96,7 @@ pemApp.controller('mod_createController', function($scope, $http) {
   }
 
   $scope.get_versions = function(name) {
-    $scope.mod_versions = $scope.mod_list[name];
+    $scope.mod_versions = Object.keys($scope.mod_list[name]);
     $scope.mod_found = true;
     $scope.forge_mods_found = false;
   }
@@ -313,7 +313,7 @@ pemApp.controller('env_createController', function($scope, $http, $location, $an
   };
 
   $scope.get_versions = function(name) {
-    $scope.mod_versions = $scope.modules[name];
+    $scope.mod_versions = Object.keys($scope.modules[name]);
     $scope.versions_found = true;
   };
 

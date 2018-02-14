@@ -103,7 +103,7 @@ class Pem
           modname = name.split('-')
           data['source'] = "https://forge.puppet.com/#{modname[0]}/#{modname[1]}"
         when 'git'
-          deploy_git_module(name,version,tardir,data[source])
+          deploy_git_module(name,version,tardir,data['source'])
         when 'upload'
           deploy_uploaded_module(name,version,tardir,data[file])
           data['source'] ||= "N/A"
