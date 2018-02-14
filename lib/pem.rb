@@ -91,11 +91,11 @@ class Pem
       versions.each do |version|
 
         moddir = "#{@conf['mod_dir']}/#{name}"
-        tardir = "#{moddir}/#{data['version']}"
+        tardir = "#{moddir}/#{version}"
 
         @logger.debug('Pem::deploy_mod') {"deploying module #{name} at version #{version} - Creating directory structure"}
         FileUtils.mkdir(moddir) unless Dir.exist?(moddir)
-        purge_mod(name, data['version']) if Dir.exist?(tardir)
+        purge_mod(name, version) if Dir.exist?(tardir)
 
         case data['type']
         when 'forge'
