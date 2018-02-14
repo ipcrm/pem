@@ -1,8 +1,12 @@
-<div class="jumbotron env_select">
-  <h3> Module [{{name}}] at version [{{version}}] is in use in the following environments:</h2>
-</div>
-<br />
+<h1 class="ng-scope">{{name}} @ {{version}}</h1>
+<hr class="ng-scope">
 <div>
+  <ul style="list-style-type:none">
+    <li><span class="deets-title">Type</span>    {{module_metadata['type']}}</li>
+    <li><span class="deets-title">Source</span>  {{module_metadata['source']}}</li>
+  </ul>
+  <hr class="ng-scope">
+  <h4> Module {{name}} at version {{version}} is in use in the following environments:</h4>
   <table id="module-list" class="table table-striped table-hover">
   <thead>
       <tr>

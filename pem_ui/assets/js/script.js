@@ -66,6 +66,11 @@ pemApp.controller('moduleController', function($scope, $http) {
 });
 
 pemApp.controller('mod_detailController', function($scope, $http, $routeParams) {
+  $http.get(conn_string + '/api/modules')
+    .then(function(response){
+      $scope.module_metadata = response.data[$routeParams.name][$routeParams.version];
+    });
+
   $http.get(conn_string + '/api/find_mod_envs/' + $routeParams.name + "/" + $routeParams.version)
     .then(function(response){
       $scope.envs = response.data;
@@ -308,7 +313,7 @@ pemApp.controller('env_createController', function($scope, $http, $location, $an
   };
 
   $scope.get_versions = function(name) {
-    $scope.mod_versions = $scope.modules[name];
+    $scope.mod_versions = Object.keys($scope.modules[name]);
     $scope.versions_found = true;
   };
 
