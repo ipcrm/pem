@@ -69,7 +69,7 @@
   </tfoot>
 </table
 >
-<button ng-show="mod_found && !loading && !loaded" ng-disabled="!selected_version" class="float-left btn btn-default" ng-click="addVersionToDeploy(selected_version)">Publish</button>
+<button ng-show="mod_found && !loading && !loaded" ng-disabled="!selected_version" class="float-left btn btn-default" ng-click="add_module(module.name,selected_versions)">Publish</button>
 
 <div id="loader" ng-show="loading"></div>
 
