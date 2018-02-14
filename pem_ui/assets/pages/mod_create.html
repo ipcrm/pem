@@ -1,7 +1,7 @@
 <div class="jumbotron env_select" ng-show="!loaded">
-    <h3>Add a new global module</h3>
+    <h3>Publish a new Puppet Module</h3>
 </div>
-<h4 ng-show="!mod_found && !loading">Add a new module of type:</h4>
+<h4 ng-show="!mod_found && !loading">Source of new module:</h4>
 <select 
     class="form-control"
     ng-show="!mod_found && !loading"
@@ -30,7 +30,7 @@
     </div>
 </form>
 
-<h4 ng-show="forge_mods_found">Choose discovered forge module:</h4>
+<h4 ng-show="forge_mods_found">Choose discovered Puppet Forge module:</h4>
 <select 
     class="form-control float-right" 
     ng-show="forge_mods_found && !loading"
@@ -43,14 +43,33 @@
 <div id="loader" ng-show="loading"></div>
 
 <h4 ng-show="mod_found && !loading && !loaded">Add Module {{module.name}}:</h4>
-<select 
-    class="form-control float-right" 
-    ng-show="mod_found && !loading && !loaded"
-    ng-model="module.version"
-    ng-change="add_module(module.name,module.version)">
-    <option value="">Select a version to deploy...</option>
-    <option ng-repeat="v in mod_versions" value="{{v}}">{{v}}</option>
-</select>
+<table ng-show="mod_found && !loading && !loaded" class="table table-hover table-striped">
+  <thead>
+    <tr>
+      <th>Versions to Deploy</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="v in selected_versions" class="tr_repeat">
+      <td>{{ v }}</td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr class="tr_repeat">
+      <td>
+        <select
+        class="form-control"
+        ng-model="selected_version" >
+        <option value="">Select a module version to deploy...</option>
+        <option ng-repeat="v in mod_versions" value="{{v}}">{{v}}</option>
+        </select>
+      </td>
+      <td><button ng-disabled="!selected_version" class="btn btn-default" ng-click="addVersionToDeploy(selected_version)">Add</button></td>
+    </tr>
+  </tfoot>
+</table
+>
+<button ng-show="mod_found && !loading && !loaded" ng-disabled="!selected_version" class="float-left btn btn-default" ng-click="add_module(module.name,selected_versions)">Publish</button>
 
 <div id="loader" ng-show="loading"></div>
 
