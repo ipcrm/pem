@@ -1,7 +1,7 @@
 <div class="jumbotron env_select" ng-show="!loaded">
-    <h3>Add a new global module</h3>
+    <h3>Publish a new Puppet Module</h3>
 </div>
-<h4 ng-show="!mod_found && !loading">Add a new module of type:</h4>
+<h4 ng-show="!mod_found && !loading">Source of new module:</h4>
 <select 
     class="form-control"
     ng-show="!mod_found && !loading"
@@ -30,7 +30,7 @@
     </div>
 </form>
 
-<h4 ng-show="forge_mods_found">Choose discovered forge module:</h4>
+<h4 ng-show="forge_mods_found">Choose discovered Puppet Forge module:</h4>
 <select 
     class="form-control float-right" 
     ng-show="forge_mods_found && !loading"
