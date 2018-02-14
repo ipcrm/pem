@@ -100,10 +100,17 @@ class Pem
         case data['type']
         when 'forge'
           deploy_forge_module(name,version,tardir)
+          modname = name.split('-')
+          data['source'] = "https://forge.puppet.com/#{modname[0]}/#{modname[1]}"
         when 'git'
           deploy_git_module(name,version,tardir,data[source])
         when 'upload'
           deploy_uploaded_module(name,version,tardir,data[file])
+          data['source'] ||= "N/A"
+        end
+
+        File.open("#{tardir}/.pemversion", 'w+') do |file|
+          file.write({ 'type' => data['type'], 'source' => data['source']}.to_yaml)
         end
       end
     rescue StandardError => err
@@ -186,10 +193,12 @@ class Pem
   # @return [Array] all available global versions of module supplied
   #
   def mod_versions(mod)
-    versions = []
+    versions = {}
 
     Pathname.new(mod).children.select(&:directory?).each do |m|
-      versions << m.basename.to_s
+      version = m.basename.to_s
+      deets = YAML.safe_load(File.open("#{mod}/#{version}/.pemversion"))
+      versions[version] = deets
     end
 
     versions
