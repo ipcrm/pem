@@ -63,17 +63,25 @@ class Pem
       FileUtils.mkdir(@conf['basedir']) unless Dir.exist?(@conf['basedir'])
       FileUtils.mkdir(@conf['mod_dir']) unless Dir.exist?(@conf['mod_dir'])
       FileUtils.mkdir(@conf['envdir'])  unless Dir.exist?(@conf['envdir'])
+      FileUtils.mkdir("#{@conf['mod_dir']}/code") unless Dir.exist?("#{@conf['mod_dir']}/code")
+      FileUtils.mkdir("#{@conf['mod_dir']}/data") unless Dir.exist?("#{@conf['mod_dir']}/data")
     rescue StandardError => err
       Pem.log_error(err, @logger)
       raise(err)
     end
   end
 
-  # Deploy a module
+  # Deploy a global module
   # @param [String] name the name of the module.  must be <author>-<name> format
-  # @param [Hash] data a hash of all the info for deploying this module.  type: forge or git. version: forge module version or git hash
+  # @param [Hash] data a hash of all the info for deploying this module.  
+  #   type:             forge or git.  Required.
+  #   version:          forge module version or git hash. Required.
+  #   data_mod:         true/false.  Is this a hieradata module. Default: false
+  #   data_mod_prefix:  path to append.  Resulting checkout will occur at <env>/data/<data_prefix>/<module>. Default: null
+  #
   def deploy_mod(name, data)
     @logger.debug('Pem::deploy_mod') { "pem::deploy_mod deploy #{name} starting" }
+    puts data
 
     # Require a <author>-<name> scheme so that we can have multiple modules of the same name
     if !name.include?('-') || (!name.count('-') == 1)
@@ -82,20 +90,25 @@ class Pem
       raise(err)
     end
 
-    #will make a scalar value an array, or will leave an array as an array
+    # will make a scalar value an array, or will leave an array as an array
     # it's ruby magic, and some people hate it, but it's just so damn simple!
     versions = Array(data['version'])
 
+    # Add false setting for data_mod if it is not set
+    data['data_mod'] = false if !data.has_key?('data_mod')
+
     begin
 
+      # For each version of the module to be deploy; loop through
       versions.each do |version|
-
-        moddir = "#{@conf['mod_dir']}/#{name}"
-        tardir = "#{moddir}/#{version}"
+      
+        mod_type = data['data_mod'] == true ? 'data' : 'code'
+        tardir = "#{@conf['mod_dir']}/#{mod_type}/#{name}/#{version}"
+        moddir = "#{@conf['mod_dir']}/#{mod_type}/#{name}"
 
         @logger.debug('Pem::deploy_mod') {"deploying module #{name} at version #{version} - Creating directory structure"}
         FileUtils.mkdir(moddir) unless Dir.exist?(moddir)
-        purge_mod(name, version) if Dir.exist?(tardir)
+        purge_mod(name, version, mod_type) if Dir.exist?(tardir)
 
         case data['type']
         when 'forge'
@@ -136,16 +149,17 @@ class Pem
       release.verify(Pathname(release_tarball))
       PuppetForge::Unpacker.unpack(release_tarball, tardir, '/tmp')
     end
-    @logger.debug('Pem::deploy_mod') { "pem::deploy_mod deploy #{name} @ #{version}from the PuppetForge has succeeded" }
+    @logger.debug('Pem::deploy_mod') { "pem::deploy_mod deploy #{name} @ #{version} from the PuppetForge has succeeded" }
   end
 
   # Delete a module from global module dir
   #
   # @param [String] name the name of the module to delete
   # @param [String] version the name of the version to delete
+  # @param [String] type the type (data/code) of the module to delete
   #
-  def purge_mod(name, version)
-    tardir = "#{@conf['mod_dir']}/#{name}/#{version}"
+  def purge_mod(name, version, type)
+    tardir = "#{@conf['mod_dir']}/#{type}/#{name}/#{version}"
 
     @logger.debug('Pem::purge_mod') { "Purging module #{name} @ #{version}; location #{tardir}" }
 
@@ -203,10 +217,17 @@ class Pem
     modules = {}
 
     begin
-      mods = Pathname.new(@conf['mod_dir']).children.select(&:directory?)
+      code_mods = Pathname.new("#{@conf['mod_dir']}/code").children.select(&:directory?)
+      data_mods = Pathname.new("#{@conf['mod_dir']}/data").children.select(&:directory?)
 
-      mods.each do |m|
-        modules[m.basename.to_s] = mod_versions(m)
+      data_mods.each do |m|
+        modules[:data] = {} unless modules.has_key?(:data)
+        modules[:data][m.basename.to_s] = mod_versions(m)
+      end
+
+      code_mods.each do |m|
+        modules[:code] = {} unless modules.has_key?(:code)
+        modules[:code][m.basename.to_s] = mod_versions(m)
       end
     rescue StandardError => err
       Pem.log_error(err, @logger)

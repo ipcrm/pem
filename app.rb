@@ -92,7 +92,8 @@ class PemApp < Sinatra::Base
   # Response
   #  {"status":"successful"}
   #
-  put '/api/upload_mod/:name' do
+  # TODO: Need to fix upload modules to accept data/code
+  put '/api/upload_mod/:name/:data_mod/:data_mod_prefix' do
     if params[:name].count('-') == 2
 
       author, name, version = params[:name].chomp.split('-')
@@ -103,7 +104,12 @@ class PemApp < Sinatra::Base
         ftype = `file --brief --mime-type #{tf.path}`.strip
 
         if ftype == 'application/x-gzip'
-          data = { 'version' => version, 'type' => 'upload', 'file' => tf }
+          data = { 'version'         => version,
+                   'type'            => 'upload',
+                   'file'            => tf,
+                   'data_mod'        => data_mod,
+                   'data_mod_prefix' => data_mod_prefix,
+                  }
           pem.deploy_mod("#{author}-#{name}", data)
           { 'status' => 'successful' }.to_json
         else
