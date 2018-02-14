@@ -76,7 +76,7 @@ pemApp.controller('mod_detailController', function($scope, $http, $routeParams) 
 
 pemApp.controller('mod_createController', function($scope, $http) {
 
-  $scope.selected_versionss = [];
+  $scope.selected_versions = [];
 
   $scope.search_for_mod = function(search_string) {
     $scope.loading = true;
