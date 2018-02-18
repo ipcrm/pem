@@ -13,7 +13,7 @@ filesync_cert:
 
 # private_key; used for filesync auth
 # /etc/puppetlabs/puppet/ssl/private_keys/<FQDN>.pem
-#filesync_cert_key: /etc/puppetlabs/puppet/ssl/certs/<FQDN>.pem
+#filesync_cert_key: /etc/puppetlabs/puppet/ssl/private_keys/<FQDN>.pem
 filesync_cert_key: 
 
 # CA Certificate to use
