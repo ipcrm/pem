@@ -48,5 +48,5 @@ master: localhost
 verify_ssl: false
 ```
 
-Now fire up PEM and use normally - albiet 100% local
+Now fire up PEM and use normally - albeit 100% local and really fake.
 
