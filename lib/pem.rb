@@ -341,10 +341,17 @@ class Pem
   def filesync_deploy
     @logger.debug('Pem::filesync_deploy') { 'starting filesync deploy' }
 
+    verify_ssl = true
+    if @conf['verify_ssl'] == false
+      @logger.debug('Pem::filesync_deploy') { 'SSL verification disabled in config.yml' }
+      verify_ssl = false
+    end
+
     ssl_options = {
       'client_cert' => OpenSSL::X509::Certificate.new(File.read(@conf['filesync_cert'])),
       'client_key'  => OpenSSL::PKey::RSA.new(File.read(@conf['filesync_cert_key'])),
       'ca_file'     => @conf['filesync_ca_cert'],
+      'verify'      => verify_ssl,
     }
 
     conn = Faraday.new(url: "https://#{@conf['master']}:8140", ssl: ssl_options) do |faraday|

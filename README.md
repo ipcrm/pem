@@ -33,4 +33,20 @@ ruby ./utils/convert_puppetfile.rb <control repo path> <new env name>
 ```
 
 
+## Using fake file-sync
+> NOTE: This 'fake' is really, really bad and needs improvement - but it works
+
+Change directory into the utils dir
+```
+bundle install
+bundle exec ruby ./fake_filesync.rb
+```
+
+Update your config.yml
+```
+master: localhost
+verify_ssl: false
+```
+
+Now fire up PEM and use normally - albiet 100% local
 
