@@ -8,7 +8,6 @@ CERT_PATH = '.'
 
 webrick_options = {
   Port:             8140,
-  Logger:           WEBrick::Log.new($stderr, WEBrick::Log::DEBUG),
   SSLEnable:        true,
   SSLVerifyClient: OpenSSL::SSL::VERIFY_NONE,
   SSLCertificate:  OpenSSL::X509::Certificate.new(File.open(File.join(CERT_PATH, 'server.crt')).read),
