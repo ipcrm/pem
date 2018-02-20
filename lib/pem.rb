@@ -46,6 +46,7 @@ class Pem
 
     conf['envdir']  = "#{conf['basedir']}/environments"
     conf['mod_dir'] = "#{conf['basedir']}/modules"
+    conf['data_dir'] = "#{conf['basedir']}/data"
 
     return conf
   rescue StandardError
@@ -62,6 +63,9 @@ class Pem
     begin
       FileUtils.mkdir(@conf['basedir']) unless Dir.exist?(@conf['basedir'])
       FileUtils.mkdir(@conf['mod_dir']) unless Dir.exist?(@conf['mod_dir'])
+      FileUtils.mkdir(@conf['data_dir']) unless Dir.exist?(@conf['data_dir'])
+      FileUtils.mkdir("#{@conf['data_dir']}/upload") unless Dir.exist?("#{@conf['data_dir']}/upload")
+      FileUtils.mkdir("#{@conf['data_dir']}/git") unless Dir.exist?("#{@conf['data_dir']}/git")
       FileUtils.mkdir(@conf['envdir'])  unless Dir.exist?(@conf['envdir'])
     rescue StandardError => err
       Pem.log_error(err, @logger)
@@ -409,4 +413,97 @@ class Pem
     modules
   end
 
+
+  # Create a data registration
+  #
+  # @param [String] name the name of the data registration
+  # @param [Hash] data a hash of all the info for deploying this registration.
+  #   prefix: Path relative to <env>/data/<prefix>. Optional.  Defaults to <env>/data
+  #   type: (upload or git)
+  #    upload:
+  #       - version [String] this is the user assigned version for this upload
+  #       - file [Filehandle] this is the file handle to the tar gz to be used
+  #    git:
+  #       - source [String] the checkout URL
+  #       - branch [String] the git branch to register
+  #
+  def create_data_reg(name,data)
+    @logger.debug('Pem::create_data_reg') { "pem::create_data_reg for #{name} starting" }
+
+    # Set the prefix if not provided
+    data['prefix'] = data['prefix'].nil? ? 'data' : data['prefix']
+
+    # Set directories for checkout/deployment
+    datadir = "#{@conf['data_dir']}"
+
+    # Calculate version
+    case data['type'] 
+    when 'upload'
+      if data['version'].nil?
+        @logger.debug('Pem::create_data_reg') { "pem::create_data_reg for #{name} failed!  Must supply version on upload!" }
+        raise "Must supply version when uploading data!"
+      end
+
+      begin
+        if data['file'].nil?
+          @logger.debug('Pem::create_data_reg') {"Pem::create_data_reg must supply file param in data!"}
+          raise "Must supply file parameter for uploading data!"
+        end
+
+        # Set the upload dir
+        uploaddir = "#{datadir}/upload/#{name}"
+        FileUtils.mkdir(uploaddir) unless Dir.exist?(uploaddir)
+
+        # Set the target dir
+        tardir = "#{datadir}/upload/#{name}/#{data['version']}"
+        PuppetForge::Unpacker.unpack(data['file'].path, tardir, '/tmp')
+        @logger.debug('Pem::create_data_reg') { "pem::create_data_reg deploy #{name} @ #{data['version']} succeeded" }
+
+        # Write metadata - minus tmpfile
+        data.delete('file')
+        File.open("#{tardir}/.pemversion", 'w+') do |file|
+          file.write(data.to_yaml)
+        end
+      rescue StandardError => err
+        Pem.log_error(err, @logger)
+        raise(err)
+      end
+
+    when 'git'
+      if data['branch'].nil?
+        @logger.debug('Pem::create_data_reg') {
+          "pem::create_data_reg for #{name} failed!  Must supply branch for git registrations!"
+        }
+        raise "Must supply branch for git registrations data!"
+      end
+
+      begin
+        # Set the data dir
+        new_data_dir = "#{datadir}/git/#{name}"
+        FileUtils.mkdir(new_data_dir) unless Dir.exist?(new_data_dir)
+
+        # Set the branch dir
+        branchdir = "#{datadir}/git/#{name}/#{data['branch']}"
+        FileUtils.mkdir(branchdir) unless Dir.exist?(branchdir)
+
+        # Make a tmpdir to clone into; get version; cp_r contents into the right version dir; mktmpdir purges original clone location
+        Dir.mktmpdir do |dir|
+          repo = Rugged::Repository.clone_at(data['source'], dir)
+          repo.checkout(data['branch'])
+          ref = repo.head.target_id
+
+          tardir = "#{datadir}/git/#{name}/#{data['branch']}/#{ref}"
+          FileUtils.cp_r(dir,tardir)
+
+          # Write the metadata
+          File.open("#{tardir}/.pemversion", 'w+') do |file|
+            file.write(data.to_yaml)
+          end
+        end
+      rescue StandardError => err
+        Pem.log_error(err, @logger)
+        raise(err)
+      end
+    end
+  end
 end

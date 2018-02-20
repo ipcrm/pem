@@ -80,6 +80,68 @@ class PemApp < Sinatra::Base
     end
   end
 
+  # Create a data registration
+  #
+  # Request
+  #  POST /api/create_data_registration
+  #  {
+  #     "common": {
+  #       "version": "e93a55d",
+  #       "type": "git",
+  #       "source": "https://github.com/myorg/common.git"
+  #     }
+  #  }
+  #
+  # Response
+  #   {
+  #     "status":"successful"
+  #   }
+  #
+  post '/api/create_data_reg' do
+    content_type 'application/json'
+    data = JSON.parse(request.body.read)
+
+    begin
+      data.each do |m, v|
+        pem.create_data_reg(m, v)
+      end
+      { 'status' => 'successful' }.to_json
+    rescue StandardError
+      { 'status' => 'failed' }.to_json
+    end
+  end
+
+  # Create a new data registration
+  #
+  # The :name must be in a specific format, <registration name>-<version>
+  # The body of the request needs to be a tar gz file of the data @ version.
+  #
+  # Request
+  #   PUT /api/upload_data_reg/common-0.0.1
+  #     Binary (tar.gz file that results from tar'ing up directory with your data)
+  # Response
+  #  {"status":"successful"}
+  #
+  put '/api/upload_data_reg/:name' do
+    name, version = params[:name].chomp.split('-')
+
+    begin
+      tf = Tempfile.new("#{params[:name]}.tar.gz")
+      tf.write(request.body.read)
+      ftype = `file --brief --mime-type #{tf.path}`.strip
+
+      if ftype == 'application/x-gzip'
+        data = { 'version' => version, 'file' => tf, 'type' => 'upload' }
+        pem.create_data_reg(name, data)
+        { 'status' => 'successful' }.to_json
+      else
+        { 'status' => 'failed', 'message' => 'Invalid archive supplied, expected a tar.gz file' }.to_json
+      end
+    rescue StandardError => e
+      { 'status' => 'failed', 'message' => e }.to_json
+    end
+  end
+
   # Upload a global module from archive
   #
   # The :name must be in a specific format, <author>-<module name>-<version>
