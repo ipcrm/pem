@@ -6,6 +6,7 @@ require "#{File.dirname(__FILE__)}/lib/pem"
 require "#{File.dirname(__FILE__)}/lib/pemenv"
 
 # Create Pem App
+
 class PemApp < Sinatra::Base
   # Assuming these go someplace useful in future
   logger = Logger.new(STDOUT)
@@ -102,10 +103,11 @@ class PemApp < Sinatra::Base
     data = JSON.parse(request.body.read)
 
     begin
+      ver = nil
       data.each do |m, v|
-        pem.create_data_reg(m, v)
+        ver = pem.create_data_reg(m, v)
       end
-      { 'status' => 'successful' }.to_json
+      { 'status' => 'successful','deployed_version' => ver }.to_json
     rescue StandardError
       { 'status' => 'failed' }.to_json
     end
@@ -113,7 +115,10 @@ class PemApp < Sinatra::Base
 
   # Create a new data registration
   #
-  # The :name must be in a specific format, <registration name>-<version>
+  # The name must be in a specific format, <registration name>-<version>
+  # Optionally, the data prefix can come after the name - and should probably be URL encoded
+  #   - Example Request
+  #       PUT /api/upload_data_reg/<name>-<version>/path%2Ffor%2Fprefix
   # The body of the request needs to be a tar gz file of the data @ version.
   #
   # Request
@@ -122,8 +127,21 @@ class PemApp < Sinatra::Base
   # Response
   #  {"status":"successful"}
   #
-  put '/api/upload_data_reg/:name' do
-    name, version = params[:name].chomp.split('-')
+  put '/api/upload_data_reg/*' do
+
+    # Auto parsing of params fails us when we urlencode the prefix
+    # so we are doing manually by flattening params into a string and then splitting
+    # ourselves
+    parsed_param = params[:splat].join('').split('/')
+    
+    # First split will be name of the module <name>-<version>
+    first = parsed_param[0]
+
+    # Second will collect everything from pos 1 and that will be the prefix
+    second = parsed_param[1..-1].length == 0 ? nil : parsed_param[1..-1].join('/')
+    
+    name, version = first.split('-')
+    prefix = second.nil? ? nil : second
 
     begin
       tf = Tempfile.new("#{params[:name]}.tar.gz")
@@ -131,9 +149,9 @@ class PemApp < Sinatra::Base
       ftype = `file --brief --mime-type #{tf.path}`.strip
 
       if ftype == 'application/x-gzip'
-        data = { 'version' => version, 'file' => tf, 'type' => 'upload' }
-        pem.create_data_reg(name, data)
-        { 'status' => 'successful' }.to_json
+        data = { 'version' => version, 'file' => tf, 'type' => 'upload', 'prefix' => prefix }
+        ver = pem.create_data_reg(name, data)
+        { 'status' => 'successful', 'deployed_version' => ver }.to_json
       else
         { 'status' => 'failed', 'message' => 'Invalid archive supplied, expected a tar.gz file' }.to_json
       end
@@ -240,6 +258,11 @@ class PemApp < Sinatra::Base
   get '/api/modules' do
     content_type 'application/json'
     pem.modules.to_json
+  end
+
+  get '/api/data_registrations' do
+    content_type 'application/json'
+    pem.data_registrations.to_json
   end
 
   # Create an environment
