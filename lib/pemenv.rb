@@ -48,7 +48,7 @@ class PemEnv
     if File.directory?(@location)
       begin
         PemLogger.logit("Redeploying #{@location}")
-        destroy(@location, @logger)
+        destroy(@location)
         deploy(modules)
       rescue StandardError => err
         PemLogger.logit(err, :fatal)
