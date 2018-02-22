@@ -28,7 +28,7 @@ class Pem
         end
 
         def setup
-            PemLogger.logit("Creating module director for #{name}", :debug) unless Dir.exists?(@location)
+            PemLogger.logit("Creating module directory for #{name}", :debug) unless Dir.exists?(@location)
             FileUtils.mkdir(@location) unless Dir.exist?(@location)
         end
 
@@ -81,6 +81,30 @@ class Pem
                     return v
                 end
             end
+        end
+
+        # Find forge modules and versions
+        #
+        # @param [String] search_string to use when looking up modules
+        # @return [Hash] hash containing names and releases {'module_name' => [x.y.z, z.y.x]}
+        def self.get_forge_modules(search_string)
+            modules = {}
+
+            unless search_string =~ /^\A[-\w.]*\z/
+            raise 'Invalid search_string provided'
+            end
+
+            url = "https://forgeapi.puppetlabs.com/v3/modules?query=#{search_string}"
+            r = RestClient.get url, accept: 'application/json', charset: 'utf-8'
+
+            JSON.parse(r)['results'].each do |x|
+            name = x['current_release']['metadata']['name'].tr('/', '-')
+            versions = x['releases'].map { |y| y['version'] }
+
+            modules[name] = versions
+            end
+
+            modules
         end
 
 

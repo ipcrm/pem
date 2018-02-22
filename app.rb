@@ -74,7 +74,7 @@ class PemApp < Sinatra::Base
     begin
       puts data
       data.each do |m, v|
-        ver = v['version']
+        ver = Array(v['version'])
         type = v['type']
         source = v.has_key?('source') ? v['source'] : nil
 
@@ -410,7 +410,7 @@ class PemApp < Sinatra::Base
   #  }
   get '/api/find_forge_mod/:search_string' do
     content_type 'application/json'
-    pem.get_forge_modules(params[:search_string]).to_json
+    Pem::Module.get_forge_modules(params[:search_string]).to_json
   end
 
 end

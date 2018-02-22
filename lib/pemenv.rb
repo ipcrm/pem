@@ -91,8 +91,8 @@ class PemEnv
 
     begin
       amods = @pem.modules
-      if amods.keys.include?(name) && amods[name].include?(version)
-        FileUtils.cp_r("#{@conf['mod_dir']}/#{name}/#{version}", "#{location}/#{mod_name}")
+      if amods.keys.include?(name) && amods[name].get_version(version)
+        FileUtils.cp_r(amods[name].get_version(version).location, "#{location}/#{mod_name}")
         File.open("#{location}/#{mod_name}/.pemversion", 'w+') do |file|
           file.write({ 'version' => version, 'name' => name }.to_yaml)
         end

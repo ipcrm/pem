@@ -38,6 +38,8 @@ class Pem
     load_modules
   end
 
+
+  # Used on startup to determine what modules are deployed populate the modules instance var
   def load_modules
     @modules = {}
     begin
@@ -92,107 +94,6 @@ class Pem
     end
   end
 
-  # Deploy a module
-  # @param [String] name the name of the module.  must be <author>-<name> format
-  # @param [Hash] data a hash of all the info for deploying this module.  type: forge or git. version: forge module version or git hash
-  def deploy_mod(name, data)
-    PemLogger.logit("#{name} deployment starting...")
-
-    # Require a <author>-<name> scheme so that we can have multiple modules of the same name
-    if !name.include?('-') || (!name.count('-') == 1)
-      err = "Module name: #{name} is not the correct format!  Must be <author>-<name>"
-      PemLogger.logit(err, :fatal)
-      raise(err)
-    end
-
-    #will make a scalar value an array, or will leave an array as an array
-    # it's ruby magic, and some people hate it, but it's just so damn simple!
-    versions = Array(data['version'])
-
-    begin
-
-      versions.each do |version|
-
-        moddir = "#{@conf['mod_dir']}/#{name}"
-        tardir = "#{moddir}/#{version}"
-
-        PemLogger.logit("deploying module #{name} at version #{version} - Creating directory structure",:debug)
-        FileUtils.mkdir(moddir) unless Dir.exist?(moddir)
-        purge_mod(name, version) if Dir.exist?(tardir)
-
-        case data['type']
-        when 'forge'
-          deploy_forge_module(name,version,tardir)
-          modname = name.split('-')
-          data['source'] = "https://forge.puppet.com/#{modname[0]}/#{modname[1]}"
-        when 'git'
-          deploy_git_module(name,version,tardir,data['source'])
-        when 'upload'
-          deploy_uploaded_module(name,version,tardir,data[file])
-          data['source'] ||= "N/A"
-        end
-
-        File.open("#{tardir}/.pemversion", 'w+') do |file|
-          file.write({ 'type' => data['type'], 'source' => data['source']}.to_yaml)
-        end
-      end
-    rescue StandardError => err
-      PemLogger.logit(err, :fatal)
-      raise(err)
-    end
-  end
-
-  def deploy_uploaded_module(name,version,tardir,file)
-    PuppetForge::Unpacker.unpack(file.path, tardir, '/tmp')
-    PemLogger.logit("deployment of #{name} @ #{version} succeeded")
-  end
-
-  def deploy_git_module(name,version,tardir,source)
-    begin
-      repo = Rugged::Repository.clone_at(source, tardir)
-      repo.checkout(version)
-    rescue Rugged::InvalidError => e
-      # If this is an annotated tag, we have to parse it a bit different
-      atag = repo.rev_parse(version).target.oid
-      repo.checkout(atag)
-    end
-    PemLogger.logit("#{name} @ #{version} checked out successfully from Git source #{source}")
-  end
-
-  def deploy_forge_module(name, version, tardir)
-    PuppetForge.user_agent = 'pem/1.0.0'
-
-    release_slug = "#{name}-#{version}"
-    release_tarball = release_slug + '.tar.gz'
-
-    release = PuppetForge::Release.find release_slug
-
-    Dir.chdir('/tmp') do
-      release.download(Pathname(release_tarball))
-      release.verify(Pathname(release_tarball))
-      PuppetForge::Unpacker.unpack(release_tarball, tardir, '/tmp')
-    end
-    PemLogger.logit("deployment of #{name} @ #{version}from the PuppetForge has succeeded")
-  end
-
-  # Delete a module from global module dir
-  #
-  # @param [String] name the name of the module to delete
-  # @param [String] version the name of the version to delete
-  #
-  def purge_mod(name, version)
-    tardir = "#{@conf['mod_dir']}/#{name}/#{version}"
-
-    PemLogger.logit("Purging module #{name} @ #{version}; location #{tardir}",:debug)
-
-    FileUtils.rm_rf(tardir)
-
-    PemLogger.logit("Successfully purged module #{name} @ #{version}")
-  rescue StandardError => err
-    PemLogger.logit(err,:fatal)
-    raise(err)
-  end
-
   # Determine if module and version is in use in any environment.
   #
   # If the module is found in an enviornment it will raise an error
@@ -214,23 +115,6 @@ class Pem
     else
       { 'status' => false, 'envs' => e }
     end
-  end
-
-  # Get all available versions of a given modules
-  #
-  # @param [String] mod the name of the module to return versions of
-  # @return [Array] all available global versions of module supplied
-  #
-  def mod_versions(mod)
-    versions = {}
-
-    Pathname.new(mod).children.select(&:directory?).each do |m|
-      version = m.basename.to_s
-      deets = YAML.safe_load(File.open("#{mod}/#{version}/.pemversion"))
-      versions[version] = deets
-    end
-
-    versions
   end
 
   # Retrieve all branches/versions of a deployed git data registration
@@ -469,31 +353,6 @@ class Pem
 
     PemLogger.logit('completed filesync deploy')
   end
-
-  # Find forge modules and versions
-  #
-  # @param [String] search_string to use when looking up modules
-  # @return [Hash] hash containing names and releases {'module_name' => [x.y.z, z.y.x]}
-  def get_forge_modules(search_string)
-    modules = {}
-
-    unless search_string =~ /^\A[-\w.]*\z/
-      raise 'Invalid search_string provided'
-    end
-
-    url = "https://forgeapi.puppetlabs.com/v3/modules?query=#{search_string}"
-    r = RestClient.get url, accept: 'application/json', charset: 'utf-8'
-
-    JSON.parse(r)['results'].each do |x|
-      name = x['current_release']['metadata']['name'].tr('/', '-')
-      versions = x['releases'].map { |y| y['version'] }
-
-      modules[name] = versions
-    end
-
-    modules
-  end
-
 
   # Create a data registration
   #
