@@ -4,15 +4,13 @@ require 'sinatra'
 require 'tempfile'
 require "#{File.dirname(__FILE__)}/lib/pem"
 require "#{File.dirname(__FILE__)}/lib/pemenv"
+require "#{File.dirname(__FILE__)}/lib/pemlogger"
 
 # Create Pem App
 
 class PemApp < Sinatra::Base
-  # Assuming these go someplace useful in future
-  logger = Logger.new(STDOUT)
-
   # Create a new PEM instance
-  pem = Pem.new(logger)
+  pem = Pem.new
 
   set :public_folder, 'pem_ui'
 
@@ -373,10 +371,10 @@ class PemApp < Sinatra::Base
 
       raise('Invalid env supplied!') if data['env'].nil?
 
-      e.destroy(e.location,logger)
+      e.destroy(e.location)
       { 'status' => 'successful' }.to_json
     rescue StandardError => f
-      Pem::log_error(f,logger)
+      PemLogger.logit(f)
 
       { 'status' => 'failed' }.to_json
     end

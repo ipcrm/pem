@@ -7,6 +7,7 @@ require 'rugged'
 require 'pathname'
 require 'json'
 require 'r10k/puppetfile'
+require "#{File.dirname(__FILE__)}/pemlogger"
 
 # Class for managing all enviornment related activities
 class PemEnv
@@ -18,7 +19,6 @@ class PemEnv
   # @param [Object] pem an existing Pem object
   def initialize(name, pem)
     @conf     = pem.conf
-    @logger   = pem.logger
     @location = "#{@conf['envdir']}/#{name}"
     @pem      = pem
   end
@@ -34,7 +34,7 @@ class PemEnv
     begin
       FileUtils.chown_R(user, group, @location)
     rescue StandardError => err
-      Pem.log_error(err, @logger)
+      Pemlogger.logit(err, :fatal)
       raise(err)
     end
   end
@@ -47,32 +47,32 @@ class PemEnv
   def deploy(modules)
     if File.directory?(@location)
       begin
-        @logger.info('PemEnv::create') { "pem_env::deploy redeploying #{@location}" }
+        PemLogger.logit("Redeploying #{@location}")
         destroy(@location, @logger)
         deploy(modules)
       rescue StandardError => err
-        Pem.log_error(err, @logger)
+        PemLogger.logit(err, :fatal)
         raise(err)
       end
     else
       begin
-        @logger.debug('PemEnv::deploy') { "pem_env::deploy creating #{@location} " }
+        PemLogger.logit("Creating #{@location}", :debug)
         FileUtils.mkdir(@location)
         FileUtils.mkdir("#{@location}/modules")
 
         modules.each do |n, m|
-          @logger.debug('PemEnv::deploy') { "pem_env::deploying module #{n} @ version #{m}" }
+          PemLogger.logit("Deploying module #{n} @ version #{m}", :debug)
           deploy_mod(n, m, "#{@location}/modules")
-          @logger.debug('PemEnv::deploy') { 'pem_env::deploying module succeeded' }
+          PemLogger.logit("Deploying module succeedded!", :debug)
         end
 
         # TODO: Need to add environment.conf setup
 
         set_owner
         @pem.filesync_deploy
-        @logger.debug('PemEnv::deploy') { "pem_env::deploy successfully created #{@location} " }
+        PemLogger.logit("Successfully created #{@location}!")
       rescue StandardError => err
-        Pem.log_error(err, @logger)
+        PemLogger.logit(err, :fatal)
         raise(err)
       end
     end
@@ -98,11 +98,11 @@ class PemEnv
         end
       else
         err = "Unkown module or version supplied for #{name} @ #{version} "
-        Pem.log_error(err, @logger)
+        PemLogger.logit(err, :fatal)
         throw(err)
       end
     rescue StandardError => err
-      Pem.log_error(err, @logger)
+      PemLogger.logit(err, :fatal)
       raise(err)
     end
   end
@@ -120,7 +120,7 @@ class PemEnv
         rmods[ md['name'] ] = md['version']
       end
     rescue StandardError => err
-      Pem.log_error(err, @logger)
+      PemLogger.logit(err, :fatal)
       raise(err)
     end
 
@@ -147,7 +147,7 @@ class PemEnv
                          end
       end
     rescue StandardError => err
-      Pem.log_error(err, @logger)
+      PemLogger.logit(err, :fatal)
       raise(err) unless puppetfile.load
     end
 
@@ -163,7 +163,7 @@ class PemEnv
     deets = YAML.safe_load(File.open("#{@location}/modules/#{mod}/.pemversion"))
     return { 'version' => deets['version'], 'name' => deets['name'] }
   rescue StandardError => err
-    Pem.log_error(err, @logger)
+    PemLogger.logit(err, :fatal)
     raise(err)
   end
 
@@ -172,12 +172,12 @@ class PemEnv
   # @param [String] location the location of the environment to be purged
   # @param [Object] logger the logger object to write messages to
   #
-  def destroy(location, logger)
+  def destroy(location)
     begin
-      logger.debug('PemEnv::create') { "pem_env::deploy removing #{location}" }
+      PemLogger.logit("Removing #{location}")
       FileUtils.rm_rf(location)
     rescue StandardError => err
-      Pem.log_error(err, logger)
+      PemLogger.logit(err, :fatal)
       raise(err)
     end
 

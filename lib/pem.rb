@@ -12,6 +12,7 @@ require 'minitar'
 require 'tempfile'
 require 'rest-client'
 require "#{File.dirname(__FILE__)}/pemenv"
+require "#{File.dirname(__FILE__)}/pemlogger"
 
 # PEM Main class
 class Pem
@@ -23,8 +24,7 @@ class Pem
   #
   # @param logger Logger Object
   # @return PEM instance
-  def initialize(logger)
-    @logger = logger
+  def initialize
     @conf = load_config
 
     setup
@@ -40,7 +40,7 @@ class Pem
     conf = YAML.load_file(File.expand_path('../config.yml', File.dirname(__FILE__)))
 
     unless %w[basedir master filesync_cert filesync_cert_key filesync_ca_cert].all? { |s| conf.key?(s) && !conf[s].nil? }
-      Pem.log_error('Missing required settings in config.yml', @logger)
+      PemLogger.logit('Missing required settings in config.yml',:fatal)
       raise
     end
 
@@ -51,14 +51,14 @@ class Pem
     return conf
   rescue StandardError
     err = 'Missing config file, or required configuration values - check config.yml'
-    Pem.log_error(err, @logger)
+    PemLogger.logit(err, :fatal)
     raise(err)
   end
 
   # Build global dirs
   #
   def setup
-    @logger.debug('Pem::setup') { 'entering pem::setup' }
+    PemLogger.logit('Running setup...',:debug)
     # Make sure dirs exist
     begin
       FileUtils.mkdir(@conf['basedir']) unless Dir.exist?(@conf['basedir'])
@@ -77,12 +77,12 @@ class Pem
   # @param [String] name the name of the module.  must be <author>-<name> format
   # @param [Hash] data a hash of all the info for deploying this module.  type: forge or git. version: forge module version or git hash
   def deploy_mod(name, data)
-    @logger.debug('Pem::deploy_mod') { "pem::deploy_mod deploy #{name} starting" }
+    PemLogger.logit("#{name} deployment starting...")
 
     # Require a <author>-<name> scheme so that we can have multiple modules of the same name
     if !name.include?('-') || (!name.count('-') == 1)
       err = "Module name: #{name} is not the correct format!  Must be <author>-<name>"
-      Pem.log_error(err, @logger)
+      PemLogger.logit(err, :fatal)
       raise(err)
     end
 
@@ -97,7 +97,7 @@ class Pem
         moddir = "#{@conf['mod_dir']}/#{name}"
         tardir = "#{moddir}/#{version}"
 
-        @logger.debug('Pem::deploy_mod') {"deploying module #{name} at version #{version} - Creating directory structure"}
+        PemLogger.logit("deploying module #{name} at version #{version} - Creating directory structure",:debug)
         FileUtils.mkdir(moddir) unless Dir.exist?(moddir)
         purge_mod(name, version) if Dir.exist?(tardir)
 
@@ -118,14 +118,14 @@ class Pem
         end
       end
     rescue StandardError => err
-      Pem.log_error(err, @logger)
+      PemLogger.logit(err, :fatal)
       raise(err)
     end
   end
 
   def deploy_uploaded_module(name,version,tardir,file)
     PuppetForge::Unpacker.unpack(file.path, tardir, '/tmp')
-    @logger.debug('Pem::deploy_mod') { "pem::deploy_mod deploy #{name} @ #{version} succeeded" }
+    PemLogger.logit("deployment of #{name} @ #{version} succeeded")
   end
 
   def deploy_git_module(name,version,tardir,source)
@@ -137,7 +137,7 @@ class Pem
       atag = repo.rev_parse(version).target.oid
       repo.checkout(atag)
     end
-    @logger.debug('Pem::deploy_mod') { "#{name} @ #{version} checked out successfully from Git source #{source}" }
+    PemLogger.logit("#{name} @ #{version} checked out successfully from Git source #{source}")
   end
 
   def deploy_forge_module(name, version, tardir)
@@ -153,7 +153,7 @@ class Pem
       release.verify(Pathname(release_tarball))
       PuppetForge::Unpacker.unpack(release_tarball, tardir, '/tmp')
     end
-    @logger.debug('Pem::deploy_mod') { "pem::deploy_mod deploy #{name} @ #{version}from the PuppetForge has succeeded" }
+    PemLogger.logit("deployment of #{name} @ #{version}from the PuppetForge has succeeded")
   end
 
   # Delete a module from global module dir
@@ -164,13 +164,13 @@ class Pem
   def purge_mod(name, version)
     tardir = "#{@conf['mod_dir']}/#{name}/#{version}"
 
-    @logger.debug('Pem::purge_mod') { "Purging module #{name} @ #{version}; location #{tardir}" }
+    PemLogger.logit("Purging module #{name} @ #{version}; location #{tardir}",:debug)
 
     FileUtils.rm_rf(tardir)
 
-    @logger.debug('Pem::purge_mod') { "Successfully purged module #{name} @ #{version}" }
+    PemLogger.logit("Successfully purged module #{name} @ #{version}")
   rescue StandardError => err
-    Pem.log_error(err, @logger)
+    PemLogger.logit(err,:fatal)
     raise(err)
   end
 
@@ -228,7 +228,7 @@ class Pem
         modules[m.basename.to_s] = mod_versions(m)
       end
     rescue StandardError => err
-      Pem.log_error(err, @logger)
+      PemLogger.logit(err,:fatal)
       raise(err)
     end
 
@@ -315,7 +315,7 @@ class Pem
 
       dreg = merge_recursively(git_dregs,upload_dregs)
     rescue StandardError => err
-      Pem.log_error(err, @logger)
+      PemLogger.logit(err,:fatal)
       raise(err)
     end
 
@@ -328,7 +328,7 @@ class Pem
   def show_envs
     return Pathname.new(@conf['envdir']).children.select(&:directory?).map { |e| e.basename.to_s }
   rescue StandardError => err
-    Pem.log_error(err, @logger)
+    PemLogger.logit(err,:fatal)
     raise(err)
   end
 
@@ -413,7 +413,7 @@ class Pem
   def create_env_archive(name)
     if !@envs.keys.include?(name)
       err = 'Invalid environment name supplied'
-      Pem.log_error(err, @logger)
+      PemLogger.logit(err,:fatal)
       raise err
     else
       begin
@@ -436,11 +436,11 @@ class Pem
   # This method commits changes to the staging code dir, force-syncs, and purges env caches on the master
   #
   def filesync_deploy
-    @logger.debug('Pem::filesync_deploy') { 'starting filesync deploy' }
+    PemLogger.logit('starting filesync deploy')
 
     verify_ssl = true
     if @conf['verify_ssl'] == false
-      @logger.debug('Pem::filesync_deploy') { 'SSL verification disabled in config.yml' }
+      PemLogger.logit('SSL verification disabled in config.yml',:debug)
       verify_ssl = false
     end
 
@@ -457,30 +457,20 @@ class Pem
       faraday.adapter Faraday.default_adapter
     end
 
-    @logger.debug('Pem::filesync_deploy') { 'Hitting filesync commit endpoint...' }
+    PemLogger.logit('Hitting filesync commit endpoint', :debug)
     conn.post '/file-sync/v1/commit', 'commit-all' => true
-    @logger.debug('Pem::filesync_deploy') { 'Done.' }
+    PemLogger.logit('Done.', :debug)
 
-    @logger.debug('Pem::filesync_deploy') { 'Hitting filesync force-sync endpoint...' }
+    PemLogger.logit('Hitting filesync force-sync endpoint', :debug)
     conn.post '/file-sync/v1/force-sync'
-    @logger.debug('Pem::filesync_deploy') { 'Done.' }
+    PemLogger.logit('Done.', :debug)
 
-    @logger.debug('Pem::filesync_deploy') { 'Hitting puppet-admin-api env endpoint...' }
+    PemLogger.logit('Hitting puppetserver puppet-admin-api env endpoint', :debug)
     conn.delete '/puppet-admin-api/v1/environment-cache'
-    @logger.debug('Pem::filesync_deploy') { 'Done.' }
+    PemLogger.logit('Done.', :debug)
 
-    @logger.debug('Pem::filesync_deploy') { 'completed filesync deploy' }
+    PemLogger.logit('completed filesync deploy')
   end
-
-  # Expose global error logging method
-  #
-  # @param [String] err messsage to be printed
-  # @param logger logger object to print to
-  def self.log_error(err, logger)
-    logger.fatal(caller_locations(1, 1)[0].label) { 'Caught exception; exiting' }
-    logger.fatal("\n" + err.to_s)
-  end
-
 
   # Find forge modules and versions
   #
@@ -522,7 +512,7 @@ class Pem
   # @return [String] version the version of the latest created registration
   #
   def create_data_reg(name,data)
-    @logger.debug('Pem::create_data_reg') { "pem::create_data_reg for #{name} starting" }
+    PemLogger.logit("Starting create data registration for #{name} ...", :debug)
 
     # Store global version to be returned after checkout
     ver = nil
@@ -537,7 +527,7 @@ class Pem
     case data['type'] 
     when 'upload'
       if data['version'].nil?
-        @logger.debug('Pem::create_data_reg') { "pem::create_data_reg for #{name} failed!  Must supply version on upload!" }
+        PemLogger.logit("create_data_reg for #{name} failed!  Must supply version on upload!",:fatal)
         raise "Must supply version when uploading data!"
       end
 
@@ -546,7 +536,7 @@ class Pem
 
       begin
         if data['file'].nil?
-          @logger.debug('Pem::create_data_reg') {"Pem::create_data_reg must supply file param in data!"}
+          PemLogger.logit("Must supply file param in data!", :fatal)
           raise "Must supply file parameter for uploading data!"
         end
 
@@ -557,7 +547,7 @@ class Pem
         # Set the target dir
         tardir = "#{datadir}/upload/#{name}/#{data['version']}"
         PuppetForge::Unpacker.unpack(data['file'].path, tardir, '/tmp')
-        @logger.debug('Pem::create_data_reg') { "pem::create_data_reg deploy #{name} @ #{data['version']} succeeded" }
+        PemLogger.logit("pem::create_data_reg deploy #{name} @ #{data['version']} succeeded")
 
 
         # Write metadata - minus tmpfile
@@ -566,15 +556,13 @@ class Pem
           file.write(data.to_yaml)
         end
       rescue StandardError => err
-        Pem.log_error(err, @logger)
+        PemLogger.logit(err,:fatal)
         raise(err)
       end
 
     when 'git'
       if data['branch'].nil?
-        @logger.debug('Pem::create_data_reg') {
-          "pem::create_data_reg for #{name} failed!  Must supply branch for git registrations!"
-        }
+        PemLogger.logit("Must supply branch for git registrations!", :fatal)
         raise "Must supply branch for git registrations data!"
       end
 
@@ -600,9 +588,7 @@ class Pem
 
           # If we are 'refreshing' and this commit is already checked out; do nothing
           if Dir.exists?(tardir)
-            @logger.debug('Pem::create_data_reg') {
-              "Pem::create_data_reg version #{ref} for #{name} already exists, skipping checkout!"
-            }
+            PemLogger.logit("Version #{ref} for #{name} already exists, skipping checkout!", :debug)
           end
           FileUtils.cp_r(dir,tardir) unless Dir.exist?(tardir)
 
@@ -615,7 +601,7 @@ class Pem
           end
         end
       rescue StandardError => err
-        Pem.log_error(err, @logger)
+        PemLogger.logit(err, :fatal)
         raise(err)
       end
     end
