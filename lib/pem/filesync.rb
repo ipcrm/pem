@@ -32,6 +32,7 @@ class Pem
             faraday.adapter Faraday.default_adapter
             end
 
+            # TODO: We should actually do some error handling here....
             PemLogger.logit('Hitting filesync commit endpoint', :debug)
             conn.post '/file-sync/v1/commit', 'commit-all' => true
             PemLogger.logit('Done.', :debug)

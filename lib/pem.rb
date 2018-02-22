@@ -149,41 +149,6 @@ class Pem
     @envs = envs_details
   end
 
-  # Compare Envs
-  #
-  # @param [String] env1 Name of the first environment to compare the second two
-  # @param [String] env2 Name of the second environment to compare to the first
-  # @return [Hash] a listing of all modules with differences in the format of 'name' => ['env1' => <version, 'env2' => version]
-  def compare_envs(env1, env2)
-    diffs   = {}
-    shareds = {}
-    e1 = @envs[env1]
-    e2 = @envs[env2]
-
-    uniq_mods = e1.keys - e2.keys | e2.keys - e1.keys
-    shared_mods = ((e1.keys + e2.keys) - uniq_mods).uniq
-
-    shared_mods.each do |s|
-      if e1[s] != e2[s]
-        diffs[s] = { env1 => e1[s], env2 => e2[s] } if e1[s] != e2[s]
-      else
-        shareds[s] = e1[s]
-      end
-    end
-
-    uniq_mods.each do |u|
-      if e1.keys.include?(u)
-        diffs[u] = { env1 => e1[u], env2 => false }
-      elsif e2.keys.include?(u)
-        diffs[u] = { env2 => e2[u], env1 => false }
-      end
-    end
-
-    {
-      'diffs'  => diffs,
-      'shared' => shareds,
-    }
-  end
 
   # Find what environments a given module/version is deployed to
   #
@@ -201,33 +166,6 @@ class Pem
 
     e
   end
-
-  # Create an archive of an enviornment
-  #
-  # @param [String] name the name of the enviornment
-  # @return [File] a file handle of the archive created
-  #
-  def create_env_archive(name)
-    if !@envs.keys.include?(name)
-      err = 'Invalid environment name supplied'
-      PemLogger.logit(err,:fatal)
-      raise err
-    else
-      begin
-        tmpfile = Tempfile.new
-
-        Dir.chdir(@conf['envdir']) do
-          Minitar.pack(name, Zlib::GzipWriter.new(tmpfile))
-        end
-
-        return tmpfile
-      rescue StandardError => err
-        Pem.log_error(err, @logger)
-        raise err
-      end
-    end
-  end
-
 
   # Create a data registration
   #
