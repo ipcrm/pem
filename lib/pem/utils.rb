@@ -69,8 +69,8 @@ class Pem
             e = []
 
             pem.envs.each do |k, v|
-            next unless v.keys.include?(name) && v[name] == version
-            e << k
+                next unless v.keys.include?(name) && v[name] == version
+                e << k
             end
 
             if e.any?
@@ -97,12 +97,13 @@ class Pem
         #
         # @param [String] env1 Name of the first environment to compare the second two
         # @param [String] env2 Name of the second environment to compare to the first
+        # @param [Hash] envs Hash of the environments you want to compare (pass in a Pem object instance var of envs)
         # @return [Hash] a listing of all modules with differences in the format of 'name' => ['env1' => <version, 'env2' => version]
-        def compare_envs(env1, env2)
+        def compare_envs(env1, env2, envs)
             diffs   = {}
             shareds = {}
-            e1 = @envs[env1]
-            e2 = @envs[env2]
+            e1 = envs[env1]
+            e2 = envs[env2]
 
             uniq_mods = e1.keys - e2.keys | e2.keys - e1.keys
             shared_mods = ((e1.keys + e2.keys) - uniq_mods).uniq

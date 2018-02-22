@@ -232,7 +232,7 @@ class PemApp < Sinatra::Base
     v = data[m]['version']
 
     begin
-      mod_status = pem.check_mod_use(m, v)
+      mod_status = pem.check_mod_use(m, v, pem)
       if mod_status['status']
         { 'status' => 'failed', 'envs' => mod_status['envs'] }.to_json
       else
@@ -340,7 +340,7 @@ class PemApp < Sinatra::Base
   #
   get '/api/envs/compare/:env1/:env2' do
     content_type 'application/json'
-    pem.compare_envs(params[:env1], params[:env2]).to_json
+    pem.compare_envs(params[:env1], params[:env2],pem.envs).to_json
   end
 
   # Find enviornment a module is deployed to

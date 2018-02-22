@@ -7,7 +7,6 @@ class Pem
             attr_reader :location
             attr_reader :type
             attr_reader :source
-            attr_reader :metadata
 
             def initialize(version, location, type, source, modname)
                 @version = version
