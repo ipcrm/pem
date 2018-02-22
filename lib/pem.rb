@@ -19,6 +19,7 @@ class Pem
   attr_reader :conf
   attr_reader :logger
   attr_reader :envs
+  attr_reader :modules
 
   # Initialize
   #
@@ -30,7 +31,23 @@ class Pem
     setup
 
     @envs = envs_details
+    @modules = {}
+
+    load_modules
   end
+
+  def load_modules
+    @modules = {}
+    begin
+      Pathname.new(@conf['mod_dir']).children.select(&:directory?).each do |m|
+        Pem::Module.new(m.basename.to_s,self).load_versions
+      end
+    rescue StandardError => err
+      PemLogger.logit(err,:fatal)
+      raise(err)
+    end
+  end
+
 
   # Load config or fail if there is missing stuff
   #
@@ -212,27 +229,6 @@ class Pem
     end
 
     versions
-  end
-
-  # Retrieve all global modules that have been deployed
-  #
-  # @return [Hash] All deployed global modules, and the versions of each
-  #
-  def modules
-    modules = {}
-
-    begin
-      mods = Pathname.new(@conf['mod_dir']).children.select(&:directory?)
-
-      mods.each do |m|
-        modules[m.basename.to_s] = mod_versions(m)
-      end
-    rescue StandardError => err
-      PemLogger.logit(err,:fatal)
-      raise(err)
-    end
-
-    modules
   end
 
   # Retrieve all branches/versions of a deployed git data registration
@@ -608,4 +604,6 @@ class Pem
 
     ver
   end
+
+
 end
