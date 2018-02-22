@@ -129,8 +129,14 @@ class Pem
   end
 
   def deploy_git_module(name,version,tardir,source)
-    repo = Rugged::Repository.clone_at(source, tardir)
-    repo.checkout(version)
+    begin
+      repo = Rugged::Repository.clone_at(source, tardir)
+      repo.checkout(version)
+    rescue Rugged::InvalidError => e
+      # If this is an annotated tag, we have to parse it a bit different
+      atag = repo.rev_parse(version).target.oid
+      repo.checkout(atag)
+    end
     @logger.debug('Pem::deploy_mod') { "#{name} @ #{version} checked out successfully from Git source #{source}" }
   end
 
