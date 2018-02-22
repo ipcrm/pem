@@ -239,29 +239,22 @@ class PemApp < Sinatra::Base
   #   GET /api/modules
   # Response
   #  {
-  #    "fake-module": [
-  #      "0.5.0"
-  #      "0.5.1"
-  #      "0.7.3"
-  #    ],
-  #    "andulla-vsphere_conf": [
-  #      "0.0.9"
-  #    ],
-  #    "mod-fake": [
-  #      "d5f324",
-  #      "ae54f3"
-  #    ],
-  #    "aristanetworks-netdev_stdlib_eos": [
-  #      "1.2.0"
-  #    ]
+  #    "ipcrm-echo": {
+  #      "0.1.3": {
+  #        "version": "0.1.3",
+  #        "location": "/var/tmp/pem/modules/ipcrm-echo/0.1.3",
+  #        "type": "forge",
+  #        "source": "forge"
+  #      }
+  #    }
   #  }
   get '/api/modules' do
     content_type 'application/json'
     ret = {}
     pem.modules.each do |k,v|
-      ret[k] = []
+      ret[k] = {}
       v.versions.each do |y|
-        ret[k] << y.version
+        ret[k][y.version] = y.metadata 
       end
     end
 
