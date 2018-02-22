@@ -47,7 +47,7 @@ class Pem
 
             def deploy_uploaded_module(fh)
                 PuppetForge::Unpacker.unpack(fh.path, @location, '/tmp')
-                PemLogger.logit("deployment of #{name} @ #{version} succeeded")
+                PemLogger.logit("deployment of #{@module} @ #{@version} succeeded")
             end
             
             def deploy_git_module

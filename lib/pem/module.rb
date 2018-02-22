@@ -8,15 +8,12 @@ class Pem
 
         def initialize(name, pem)
             validate_name(name)
-
             @name  = name
             @location = "#{pem.conf['mod_dir']}/#{name}"
             @versions = []
             @pem = pem
-
             setup
             load_versions
-
         end
 
         def validate_name(name)

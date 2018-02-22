@@ -4,7 +4,7 @@ require 'sinatra'
 require 'tempfile'
 require "#{File.dirname(__FILE__)}/lib/pemlogger"
 require "#{File.dirname(__FILE__)}/lib/pem"
-require "#{File.dirname(__FILE__)}/lib/pemenv"
+require "#{File.dirname(__FILE__)}/lib/pem/env"
 require "#{File.dirname(__FILE__)}/lib/pem/module"
 require "#{File.dirname(__FILE__)}/lib/pem/module/version"
 
@@ -72,7 +72,6 @@ class PemApp < Sinatra::Base
     data = JSON.parse(request.body.read)
 
     begin
-      puts data
       data.each do |m, v|
         ver = Array(v['version'])
         type = v['type']
@@ -194,8 +193,7 @@ class PemApp < Sinatra::Base
         ftype = `file --brief --mime-type #{tf.path}`.strip
 
         if ftype == 'application/x-gzip'
-          data = { 'version' => version, 'type' => 'upload', 'file' => tf }
-          pem.deploy_mod("#{author}-#{name}", data)
+          Pem::Module.new("#{author}-#{name}",pem).deploy_version(version, 'upload', 'Uploaded', tf)
           { 'status' => 'successful' }.to_json
         else
           { 'status' => 'failed', 'message' => 'Invalid archive supplied, expected a tar.gz file' }.to_json
@@ -298,7 +296,7 @@ class PemApp < Sinatra::Base
   post '/api/envs/:name/create' do
     content_type 'application/json'
     data = JSON.parse(request.body.read)
-    e = PemEnv.new(params[:name], pem)
+    e = Pem::Env.new(params[:name], pem)
 
     begin
       e.deploy(data)
@@ -320,7 +318,7 @@ class PemApp < Sinatra::Base
   #   }
   get '/api/envs/:name/modules' do
     content_type 'application/json'
-    e = PemEnv.new(params[:name], pem)
+    e = Pem::Env.new(params[:name], pem)
     e.mods.to_json
   end
 
@@ -386,7 +384,7 @@ class PemApp < Sinatra::Base
 
     begin
       data = JSON.parse(request.body.read)
-      e = PemEnv.new(data['env'], pem)
+      e = Pem::Env.new(data['env'], pem)
 
       raise('Invalid env supplied!') if data['env'].nil?
 

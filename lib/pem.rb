@@ -12,7 +12,9 @@ require 'minitar'
 require 'tempfile'
 require 'rest-client'
 require "#{File.dirname(__FILE__)}/pemlogger"
-require "#{File.dirname(__FILE__)}/pemenv"
+require "#{File.dirname(__FILE__)}/pem/env"
+require "#{File.dirname(__FILE__)}/pem/utils"
+require "#{File.dirname(__FILE__)}/pem/filesync"
 require "#{File.dirname(__FILE__)}/pem/module"
 require "#{File.dirname(__FILE__)}/pem/module/version"
 
@@ -22,6 +24,9 @@ class Pem
   attr_reader :logger
   attr_reader :envs
   attr_reader :modules
+  attr_reader :filesync
+
+  include Pem::Utils
 
   # Initialize
   #
@@ -30,92 +35,15 @@ class Pem
   def initialize
     @conf = load_config
 
-    setup
+    setup(self)
 
     @envs = envs_details
     @modules = {}
+    @filesync = Pem::Filesync.new(@conf)
 
-    load_modules
+    load_modules(self)
   end
 
-
-  # Used on startup to determine what modules are deployed populate the modules instance var
-  def load_modules
-    @modules = {}
-    begin
-      Pathname.new(@conf['mod_dir']).children.select(&:directory?).each do |m|
-        Pem::Module.new(m.basename.to_s, self).load_versions
-      end
-    rescue StandardError => err
-      PemLogger.logit(err,:fatal)
-      raise(err)
-    end
-  end
-
-
-  # Load config or fail if there is missing stuff
-  #
-  # @return [Hash] Configuration hash
-  #
-  def load_config
-    conf = YAML.load_file(File.expand_path('../config.yml', File.dirname(__FILE__)))
-
-    unless %w[basedir master filesync_cert filesync_cert_key filesync_ca_cert].all? { |s| conf.key?(s) && !conf[s].nil? }
-      PemLogger.logit('Missing required settings in config.yml',:fatal)
-      raise
-    end
-
-    conf['envdir']  = "#{conf['basedir']}/environments"
-    conf['mod_dir'] = "#{conf['basedir']}/modules"
-    conf['data_dir'] = "#{conf['basedir']}/data"
-
-    return conf
-  rescue StandardError
-    err = 'Missing config file, or required configuration values - check config.yml'
-    PemLogger.logit(err, :fatal)
-    raise(err)
-  end
-
-  # Build global dirs
-  #
-  def setup
-    PemLogger.logit('Running setup...',:debug)
-    # Make sure dirs exist
-    begin
-      FileUtils.mkdir(@conf['basedir']) unless Dir.exist?(@conf['basedir'])
-      FileUtils.mkdir(@conf['mod_dir']) unless Dir.exist?(@conf['mod_dir'])
-      FileUtils.mkdir(@conf['data_dir']) unless Dir.exist?(@conf['data_dir'])
-      FileUtils.mkdir("#{@conf['data_dir']}/upload") unless Dir.exist?("#{@conf['data_dir']}/upload")
-      FileUtils.mkdir("#{@conf['data_dir']}/git") unless Dir.exist?("#{@conf['data_dir']}/git")
-      FileUtils.mkdir(@conf['envdir'])  unless Dir.exist?(@conf['envdir'])
-    rescue StandardError => err
-      Pem.log_error(err, @logger)
-      raise(err)
-    end
-  end
-
-  # Determine if module and version is in use in any environment.
-  #
-  # If the module is found in an enviornment it will raise an error
-  #
-  # @param [String] name the name of the module in <author>-<name> format
-  # @param [String] version the version string of the module in question
-  # @return [Hash] key status equals true/false (boolean) and envs hash will be an array containing 0 or more envs
-  #
-  def check_mod_use(name, version)
-    e = []
-
-    @envs.each do |k, v|
-      next unless v.keys.include?(name) && v[name] == version
-      e << k
-    end
-
-    if e.any?
-      { 'status' => true, 'envs' => e }
-    else
-      { 'status' => false, 'envs' => e }
-    end
-  end
 
   # Retrieve all branches/versions of a deployed git data registration
   #
@@ -154,19 +82,6 @@ class Pem
 
     {'uploads' => versions}
   end
-
-  # Merge (recursive) two hashes 
-  #
-  # Shameless robbed from SO
-  # https://stackoverflow.com/questions/8415240/how-to-merge-ruby-hashes
-  #
-  # @param [Hash] a the first hash to be merged
-  # @param [Hash] b the second hash to be merged
-  #
-  def merge_recursively(a, b)
-    a.merge(b) {|key, a_item, b_item| merge_recursively(a_item, b_item) }
-  end
-
 
   # Retrieve all data registrations that have been deployed
   #
@@ -221,7 +136,7 @@ class Pem
   def envs_details
     current_envs = {}
     show_envs.each do |e|
-      z = PemEnv.new(e, self)
+      z = Pem::Env.new(e, self)
       current_envs[e] = z.mods
     end
 
@@ -313,46 +228,6 @@ class Pem
     end
   end
 
-  # Filesync handling
-  #
-  # This method commits changes to the staging code dir, force-syncs, and purges env caches on the master
-  #
-  def filesync_deploy
-    PemLogger.logit('starting filesync deploy')
-
-    verify_ssl = true
-    if @conf['verify_ssl'] == false
-      PemLogger.logit('SSL verification disabled in config.yml',:debug)
-      verify_ssl = false
-    end
-
-    ssl_options = {
-      'client_cert' => OpenSSL::X509::Certificate.new(File.read(@conf['filesync_cert'])),
-      'client_key'  => OpenSSL::PKey::RSA.new(File.read(@conf['filesync_cert_key'])),
-      'ca_file'     => @conf['filesync_ca_cert'],
-      'verify'      => verify_ssl,
-    }
-
-    conn = Faraday.new(url: "https://#{@conf['master']}:8140", ssl: ssl_options) do |faraday|
-      faraday.request :json
-      faraday.options[:timeout] = 300
-      faraday.adapter Faraday.default_adapter
-    end
-
-    PemLogger.logit('Hitting filesync commit endpoint', :debug)
-    conn.post '/file-sync/v1/commit', 'commit-all' => true
-    PemLogger.logit('Done.', :debug)
-
-    PemLogger.logit('Hitting filesync force-sync endpoint', :debug)
-    conn.post '/file-sync/v1/force-sync'
-    PemLogger.logit('Done.', :debug)
-
-    PemLogger.logit('Hitting puppetserver puppet-admin-api env endpoint', :debug)
-    conn.delete '/puppet-admin-api/v1/environment-cache'
-    PemLogger.logit('Done.', :debug)
-
-    PemLogger.logit('completed filesync deploy')
-  end
 
   # Create a data registration
   #
