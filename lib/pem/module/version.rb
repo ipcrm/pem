@@ -13,14 +13,8 @@ class Pem
                 @version = version
                 @location = location
                 @type = type
-                @source = source
                 @module = modname
-
-                @metadata = {}
-                @metadata[:version]  = version
-                @metadata[:location] = location
-                @metadata[:type]     = type
-                @metadata[:source]   = source
+                @source = type == 'forge' ? "https://forge.puppet.com/#{@module.split('-').join('/')}" : source
             end
 
             def is_deployed?
@@ -42,9 +36,12 @@ class Pem
 
             def write_metadata
                 File.open("#{@location}/.pemversion", 'w+') do |file|
-
-                # Lazy convert symbols to strings (hash keys)
-                file.write(@metadata.collect{|k,v| [k.to_s, v]}.to_h.to_yaml)
+                    file.write({
+                        'version'  => @version,
+                        'location' => @location,
+                        'type'     => @type,
+                        'source'   => @source,
+                    })
                 end
             end
 

@@ -254,7 +254,12 @@ class PemApp < Sinatra::Base
     pem.modules.each do |k,v|
       ret[k] = {}
       v.versions.each do |y|
-        ret[k][y.version] = y.metadata 
+        ret[k][y.version] = {
+          'version'  => y.version,
+          'location' => y.location,
+          'type'     => y.type,
+          'source'   => y.source,
+        }
       end
     end
 
