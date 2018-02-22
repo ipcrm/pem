@@ -11,8 +11,10 @@ require 'zlib'
 require 'minitar'
 require 'tempfile'
 require 'rest-client'
-require "#{File.dirname(__FILE__)}/pemenv"
 require "#{File.dirname(__FILE__)}/pemlogger"
+require "#{File.dirname(__FILE__)}/pemenv"
+require "#{File.dirname(__FILE__)}/pem/module"
+require "#{File.dirname(__FILE__)}/pem/module/version"
 
 # PEM Main class
 class Pem

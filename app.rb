@@ -2,9 +2,11 @@
 
 require 'sinatra'
 require 'tempfile'
+require "#{File.dirname(__FILE__)}/lib/pemlogger"
 require "#{File.dirname(__FILE__)}/lib/pem"
 require "#{File.dirname(__FILE__)}/lib/pemenv"
-require "#{File.dirname(__FILE__)}/lib/pemlogger"
+require "#{File.dirname(__FILE__)}/lib/pem/module"
+require "#{File.dirname(__FILE__)}/lib/pem/module/version"
 
 # Create Pem App
 
@@ -255,7 +257,15 @@ class PemApp < Sinatra::Base
   #  }
   get '/api/modules' do
     content_type 'application/json'
-    pem.modules.to_json
+    ret = {}
+    pem.modules.each do |k,v|
+      ret[k] = []
+      v.versions.each do |y|
+        ret[k] << y.version
+      end
+    end
+
+    ret.to_json
   end
 
   get '/api/data_registrations' do

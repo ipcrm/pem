@@ -28,7 +28,7 @@ class Pem
         end
 
         def setup
-            PemLogger.logit("Creating module director for #{name}", :debug)
+            PemLogger.logit("Creating module director for #{name}", :debug) unless Dir.exists?(@location)
             FileUtils.mkdir(@location) unless Dir.exist?(@location)
         end
 
