@@ -42,7 +42,7 @@ class Pem
     @modules = {}
     begin
       Pathname.new(@conf['mod_dir']).children.select(&:directory?).each do |m|
-        Pem::Module.new(m.basename.to_s,self).load_versions
+        Pem::Module.new(m.basename.to_s, self).load_versions
       end
     rescue StandardError => err
       PemLogger.logit(err,:fatal)

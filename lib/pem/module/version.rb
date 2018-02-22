@@ -18,7 +18,7 @@ class Pem
             end
 
             def is_deployed?
-                return Dir.exists?(@metadata[:location]) ? true : false
+                return Dir.exists?(@location) ? true : false
             end
 
             def deploy(fh)
@@ -41,7 +41,7 @@ class Pem
                         'location' => @location,
                         'type'     => @type,
                         'source'   => @source,
-                    })
+                    }.to_yaml)
                 end
             end
 
@@ -75,7 +75,7 @@ class Pem
                     release.verify(Pathname(release_tarball))
                     PuppetForge::Unpacker.unpack(release_tarball, @location, '/tmp')
                 end
-                PemLogger.logit("deployment of #{@module} @ #{@version}from the PuppetForge has succeeded")
+                PemLogger.logit("deployment of #{@module} @ #{@version} from the PuppetForge has succeeded")
             end
 
             def delete

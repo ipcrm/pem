@@ -12,11 +12,11 @@ class Pem
             @name  = name
             @location = "#{pem.conf['mod_dir']}/#{name}"
             @versions = []
+            @pem = pem
 
             setup
             load_versions
 
-            pem.modules[name] = self
         end
 
         def validate_name(name)
@@ -46,6 +46,10 @@ class Pem
                         PemLogger.logit("YAML not found for #{m}")
                     end
                 end
+
+                if @versions.length > 0
+                    @pem.modules[name] = self
+                end
               rescue StandardError => err
                 PemLogger.logit(err, :fatal)
                 raise(err)
@@ -61,6 +65,7 @@ class Pem
                 ver.deploy(fh)
             end
             @versions << ver
+            load_versions
         end
 
         # Delete specific version, pass in version object

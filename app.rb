@@ -72,12 +72,23 @@ class PemApp < Sinatra::Base
     data = JSON.parse(request.body.read)
 
     begin
+      puts data
       data.each do |m, v|
-        pem.deploy_mod(m, v)
+        ver = v['version']
+        type = v['type']
+        source = v.has_key?('source') ? v['source'] : nil
+
+        pm = Pem::Module.new(m,pem)
+        ver.each do |mver|
+          PemLogger.logit("Starting to deploy module #{m} version #{mver}")
+          pm.deploy_version(mver, type, source)
+        end
       end
       { 'status' => 'successful' }.to_json
-    rescue StandardError
-      { 'status' => 'failed' }.to_json
+    rescue StandardError => e
+      PemLogger.logit("Failed to deploy module, error #{e.message}")
+      PemLogger.logit(e.backtrace)
+      { 'status' => 'failed', 'message' => e.message }.to_json
     end
   end
 
