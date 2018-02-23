@@ -240,6 +240,7 @@ class PemApp < Sinatra::Base
   #     "status":"failed", "envs": ["test3"]
   #   }
   #
+  # TODO: NEEDS REWORKED AFTER RE_ORG
   post '/api/purge_mod' do
     content_type 'application/json'
     data = JSON.parse(request.body.read)
@@ -291,6 +292,8 @@ class PemApp < Sinatra::Base
     ret.to_json
   end
 
+
+  # Get all data registrations and versions
   get '/api/data_registrations' do
     content_type 'application/json'
 
@@ -372,7 +375,7 @@ class PemApp < Sinatra::Base
   #
   get '/api/envs/compare/:env1/:env2' do
     content_type 'application/json'
-    pem.compare_envs(params[:env1], params[:env2],pem.envs).to_json
+    Pem::Utils::Envs.compare_envs(params[:env1], params[:env2],pem.envs).to_json
   end
 
   # Find enviornment a module is deployed to
@@ -397,7 +400,7 @@ class PemApp < Sinatra::Base
   #   application/octet-stream file in tar.gz format
   #
   get '/api/envs/:name/download' do
-    tmpfile = pem.create_env_archive(params[:name])
+    tmpfile = Pem::Utils::Envs.create_env_archive(params[:name],pem.conf)
     f = File.open(tmpfile.path, 'r+')
     send_file(f, filename: "#{params[:name]}.tar.gz", type: 'Application/octet-stream')
   end

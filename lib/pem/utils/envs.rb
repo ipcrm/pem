@@ -8,17 +8,17 @@ class Pem
             # @param [String] name the name of the enviornment
             # @return [File] a file handle of the archive created
             #
-            def self.create_env_archive(name)
+            def self.create_env_archive(name,conf)
                 begin
                     tmpfile = Tempfile.new
 
-                    Dir.chdir(@conf['envdir']) do
+                    Dir.chdir(conf['envdir']) do
                     Minitar.pack(name, Zlib::GzipWriter.new(tmpfile))
                     end
 
                     return tmpfile
                 rescue StandardError => err
-                    PemLogger(err, :fatal)
+                    PemLogger.logit(err, :fatal)
                     raise err
                 end
             end
