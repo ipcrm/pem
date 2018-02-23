@@ -1,6 +1,4 @@
-require "#{File.dirname(__FILE__)}/../../pemlogger"
-
-class Pem
+module Pem
   class Module
     class Version
       attr_reader :version
@@ -46,7 +44,7 @@ class Pem
 
       def deploy_uploaded_module(fh)
         PuppetForge::Unpacker.unpack(fh.path, @location, '/tmp')
-        PemLogger.logit("deployment of #{@module} @ #{@version} succeeded")
+        Pem::Logger.logit("deployment of #{@module} @ #{@version} succeeded")
       end
       
       def deploy_git_module
@@ -58,7 +56,7 @@ class Pem
           atag = repo.rev_parse(@version).target.oid
           repo.checkout(atag)
         end
-        PemLogger.logit("#{@module} @ #{@version} checked out successfully from Git source #{@source}")
+        Pem::Logger.logit("#{@module} @ #{@version} checked out successfully from Git source #{@source}")
       end
       
       def deploy_forge_module
@@ -66,23 +64,25 @@ class Pem
       
         release_slug = "#{@module}-#{@version}"
         release_tarball = release_slug + '.tar.gz'
-      
         release = PuppetForge::Release.find release_slug
-      
-        Dir.chdir('/tmp') do
+     
+        dir = Dir.mktmpdir
+
+        Dir.chdir(dir) do
           release.download(Pathname(release_tarball))
           release.verify(Pathname(release_tarball))
-          PuppetForge::Unpacker.unpack(release_tarball, @location, '/tmp')
+          PuppetForge::Unpacker.unpack(release_tarball, @location, dir)
         end
-        PemLogger.logit("deployment of #{@module} @ #{@version} from the PuppetForge has succeeded")
+
+        Pem::Logger.logit("deployment of #{@module} @ #{@version} from the PuppetForge has succeeded")
       end
 
       def delete
-        PemLogger.logit("Purging module #{@module} @ #{@version}; location #{@location}", :debug)
+        Pem::Logger.logit("Purging module #{@module} @ #{@version}; location #{@location}", :debug)
         FileUtils.rm_rf(@location)
-        PemLogger.logit("Successfully purged module #{@module} @ #{@version}")
+        Pem::Logger.logit("Successfully purged module #{@module} @ #{@version}")
       rescue StandardError => err
-        PemLogger.logit(err,:fatal)
+        Pem::Logger.logit(err,:fatal)
         raise(err)
       end
     end 

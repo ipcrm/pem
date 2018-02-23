@@ -1,6 +1,4 @@
-require "#{File.dirname(__FILE__)}/../../pemlogger"
-
-class Pem
+module Pem
   module Utils
   module Envs
     # Create an archive of an enviornment
@@ -18,7 +16,7 @@ class Pem
 
       return tmpfile
     rescue StandardError => err
-      PemLogger.logit(err, :fatal)
+      Pem::Logger.logit(err, :fatal)
       raise err
     end
     end

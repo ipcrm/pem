@@ -1,7 +1,16 @@
-require "#{File.dirname(__FILE__)}/../pemlogger"
-require "#{File.dirname(__FILE__)}/utils/setup"
+require 'yaml'
+require 'logger'
+require 'puppet_forge'
+require 'rugged'
+require 'pathname'
+require 'sinatra'
+require 'openssl'
+require 'zlib'
+require 'minitar'
+require 'tempfile'
+require 'rest-client'
 
-class Pem
+module Pem
   class Module
     attr_reader :name
     attr_reader :location
@@ -22,40 +31,41 @@ class Pem
     def validate_name(name)
       if !name.include?('-') || (!name.count('-') == 1)
         err = "Module name: #{name} is not the correct format!  Must be <author>-<name>"
-        PemLogger.logit(err, :fatal)
+        Pem::Logger.logit(err, :fatal)
         raise(err)
       end
     end
 
     # Get versions currently deployed
     def load_versions
-      begin
-        @versions = []
-        mods = Pathname.new(@location).children.select(&:directory?)
-      
-        mods.each do |m|
-          if File.exists?("#{m}/.pemversion")
-            deets = YAML.safe_load(File.open("#{m}/.pemversion"),[Symbol])
-            @versions << Pem::Module::Version.new(deets['version'],deets['location'],deets['type'],deets['source'],@name)
-          else
-            PemLogger.logit("YAML not found for #{m}")
-          end
+      @versions = []
+      mods = Pathname.new(@location).children.select(&:directory?)
+    
+      mods.each do |m|
+        if File.exists?("#{m}/.pemversion")
+          deets = YAML.safe_load(File.open("#{m}/.pemversion"),[Symbol])
+          @versions << Pem::Module::Version.new(deets['version'],deets['location'],deets['type'],deets['source'],@name)
+        else
+          Pem::Logger.logit("YAML not found for #{m}")
         end
+      end
 
-        if @versions.length > 0
-          @pem.modules[name] = self
-        end
-        rescue StandardError => err
-        PemLogger.logit(err, :fatal)
-        raise(err)
-       end
+      if @versions.length > 0
+        @pem.modules[name] = self
+      end
+    
+    rescue StandardError => err
+      Pem::Logger.logit(err, :fatal)
+      raise(err)
     end
 
 
     # Deploy a specific version
     def deploy_version(version,type,source,fh=nil)
+
       location = "#{@location}/#{version}"
       ver = Pem::Module::Version.new(version,location,type,source,@name)
+
       if !ver.is_deployed?
         ver.deploy(fh)
       end

@@ -7,10 +7,9 @@ require 'rugged'
 require 'pathname'
 require 'json'
 require 'r10k/puppetfile'
-require "#{File.dirname(__FILE__)}/../pemlogger"
 
 # Class for managing all enviornment related activities
-class Pem
+module Pem
   class Env
   attr_reader :location
 
@@ -48,32 +47,32 @@ class Pem
   def deploy(modules)
     if File.directory?(@location)
     begin
-      PemLogger.logit("Redeploying #{@location}")
+      Pem::Logger.logit("Redeploying #{@location}")
       destroy(@location)
       deploy(modules)
     rescue StandardError => err
-      PemLogger.logit(err, :fatal)
+      Pem::Logger.logit(err, :fatal)
       raise(err)
     end
     else
     begin
-      PemLogger.logit("Creating #{@location}", :debug)
+      Pem::Logger.logit("Creating #{@location}", :debug)
       FileUtils.mkdir(@location)
       FileUtils.mkdir("#{@location}/modules")
 
       modules.each do |n, m|
-      PemLogger.logit("Deploying module #{n} @ version #{m}", :debug)
+      Pem::Logger.logit("Deploying module #{n} @ version #{m}", :debug)
       deploy_mod(n, m, "#{@location}/modules")
-      PemLogger.logit("Deploying module succeedded!", :debug)
+      Pem::Logger.logit("Deploying module succeedded!", :debug)
       end
 
       # TODO: Need to add environment.conf setup
 
       set_owner
       @pem.filesync.deploy
-      PemLogger.logit("Successfully created #{@location}!")
+      Pem::Logger.logit("Successfully created #{@location}!")
     rescue StandardError => err
-      PemLogger.logit(err, :fatal)
+      Pem::Logger.logit(err, :fatal)
       raise(err)
     end
     end
@@ -99,11 +98,11 @@ class Pem
       end
     else
       err = "Unkown module or version supplied for #{name} @ #{version} "
-      PemLogger.logit(err, :fatal)
+      Pem::Logger.logit(err, :fatal)
       throw(err)
     end
     rescue StandardError => err
-    PemLogger.logit(err, :fatal)
+    Pem::Logger.logit(err, :fatal)
     raise(err)
     end
   end
@@ -121,7 +120,7 @@ class Pem
       rmods[ md['name'] ] = md['version']
     end
     rescue StandardError => err
-    PemLogger.logit(err, :fatal)
+    Pem::Logger.logit(err, :fatal)
     raise(err)
     end
 
@@ -148,7 +147,7 @@ class Pem
               end
     end
     rescue StandardError => err
-    PemLogger.logit(err, :fatal)
+    Pem::Logger.logit(err, :fatal)
     raise(err) unless puppetfile.load
     end
 
@@ -164,7 +163,7 @@ class Pem
     deets = YAML.safe_load(File.open("#{@location}/modules/#{mod}/.pemversion"))
     return { 'version' => deets['version'], 'name' => deets['name'] }
   rescue StandardError => err
-    PemLogger.logit(err, :fatal)
+    Pem::Logger.logit(err, :fatal)
     raise(err)
   end
 
@@ -175,10 +174,10 @@ class Pem
   #
   def destroy(location)
     begin
-    PemLogger.logit("Removing #{location}")
+    Pem::Logger.logit("Removing #{location}")
     FileUtils.rm_rf(location)
     rescue StandardError => err
-    PemLogger.logit(err, :fatal)
+    Pem::Logger.logit(err, :fatal)
     raise(err)
     end
 

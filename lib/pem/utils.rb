@@ -1,6 +1,4 @@
-require "#{File.dirname(__FILE__)}/../pemlogger"
-
-class Pem
+module Pem
   module Utils
     require "#{File.dirname(__FILE__)}/utils/config"
     require "#{File.dirname(__FILE__)}/utils/setup"

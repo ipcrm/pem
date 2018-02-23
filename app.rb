@@ -2,19 +2,12 @@
 
 require 'sinatra'
 require 'tempfile'
-require "#{File.dirname(__FILE__)}/lib/pemlogger"
 require "#{File.dirname(__FILE__)}/lib/pem"
-require "#{File.dirname(__FILE__)}/lib/pem/env"
-require "#{File.dirname(__FILE__)}/lib/pem/module"
-require "#{File.dirname(__FILE__)}/lib/pem/datamodule"
-require "#{File.dirname(__FILE__)}/lib/pem/datamodule/version"
-require "#{File.dirname(__FILE__)}/lib/pem/module/version"
 
 # Create Pem App
-
 class PemApp < Sinatra::Base
   # Create a new PEM instance
-  pem = Pem.new
+  pem = Pem::Base.new
 
   set :public_folder, 'pem_ui'
 
@@ -81,14 +74,14 @@ class PemApp < Sinatra::Base
 
         pm = Pem::Module.new(m,pem)
         ver.each do |mver|
-          PemLogger.logit("Starting to deploy module #{m} version #{mver}")
+          Pem::Logger.logit("Starting to deploy module #{m} version #{mver}")
           pm.deploy_version(mver, type, source)
         end
       end
       { 'status' => 'successful' }.to_json
     rescue StandardError => e
-      PemLogger.logit("Failed to deploy module, error #{e.message}")
-      PemLogger.logit(e.backtrace)
+      Pem::Logger.logit("Failed to deploy module, error #{e.message}")
+      Pem::Logger.logit(e.backtrace)
       { 'status' => 'failed', 'message' => e.message }.to_json
     end
   end
@@ -131,8 +124,6 @@ class PemApp < Sinatra::Base
       end
       { 'status' => 'successful','deployed_version' => ver }.to_json
     rescue StandardError => e
-      puts e.message
-      puts e.backtrace
       { 'status' => 'failed', 'error' => e.message }.to_json
     end
   end
@@ -426,7 +417,7 @@ class PemApp < Sinatra::Base
       e.destroy(e.location)
       { 'status' => 'successful' }.to_json
     rescue StandardError => f
-      PemLogger.logit(f)
+      Pem::Logger.logit(f)
 
       { 'status' => 'failed' }.to_json
     end

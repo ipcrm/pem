@@ -1,6 +1,4 @@
-require "#{File.dirname(__FILE__)}/../../pemlogger"
-
-class Pem
+module Pem
   module Utils
     module Modules
       # Used on startup to determine what modules are deployed populate the modules instance var
@@ -10,7 +8,7 @@ class Pem
             Pem::Module.new(m.basename.to_s, pem).load_versions
           end
         rescue StandardError => err
-          PemLogger.logit(err,:fatal)
+          Pem::Logger.logit(err,:fatal)
           raise(err)
         end
       end
@@ -23,7 +21,7 @@ class Pem
             Pem::Datamodule.new(m.basename.to_s, deets['prefix'], pem).load_versions
           end
         rescue StandardError => err
-          PemLogger.logit(err,:fatal)
+          Pem::Logger.logit(err,:fatal)
           raise(err)
         end
       end

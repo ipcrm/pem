@@ -1,6 +1,4 @@
-require "#{File.dirname(__FILE__)}/../../pemlogger"
-
-class Pem
+module Pem
   class Datamodule
     class Version < Pem::Module::Version
       attr_reader :prefix
@@ -39,7 +37,7 @@ class Pem
 
       def deploy_git_module(fh)
         FileUtils.cp_r(fh,@location) unless Dir.exist?(@location)
-        PemLogger.logit("#{@module} @ #{@version} checked out successfully from Git source #{@source}")
+        Pem::Logger.logit("#{@module} @ #{@version} checked out successfully from Git source #{@source}")
       end
 
     end

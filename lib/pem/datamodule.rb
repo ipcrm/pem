@@ -1,7 +1,16 @@
-require "#{File.dirname(__FILE__)}/../pemlogger"
-require "#{File.dirname(__FILE__)}/utils/setup"
+require 'yaml'
+require 'logger'
+require 'puppet_forge'
+require 'rugged'
+require 'pathname'
+require 'sinatra'
+require 'openssl'
+require 'zlib'
+require 'minitar'
+require 'tempfile'
+require 'rest-client'
 
-class Pem
+module Pem
   class Datamodule < Pem::Module
     attr_reader :name
     attr_reader :prefix
@@ -56,7 +65,7 @@ class Pem
 
         # If we are 'refreshing' and this commit is already checked out; do nothing
         if Dir.exists?(location)
-          PemLogger.logit("Version #{ref} for #{@name} already exists, skipping checkout!", :debug)
+          Pem::Logger.logit("Version #{ref} for #{@name} already exists, skipping checkout!", :debug)
         else
           ver = Pem::Datamodule::Version.new(ver,location,'git',source,@name,@prefix,branch)
           ver.deploy(dir)
@@ -88,7 +97,7 @@ class Pem
               deets['branch'],
             )
           else
-            PemLogger.logit("YAML not found for #{m}")
+            Pem::Logger.logit("YAML not found for #{m}")
           end
         end
 
@@ -96,7 +105,7 @@ class Pem
           @pem.datamodules[@name] = self
         end
         rescue StandardError => err
-        PemLogger.logit(err, :fatal)
+        Pem::Logger.logit(err, :fatal)
         raise(err)
        end
     end
