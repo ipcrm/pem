@@ -97,8 +97,8 @@ class PemApp < Sinatra::Base
   #  POST /api/create_data_registration
   #  {
   #     "common": {
-  #       "version": "e93a55d",
   #       "type": "git",
+  #       "branch": "master",
   #       "source": "https://github.com/myorg/common.git"
   #     }
   #  }
@@ -115,11 +115,14 @@ class PemApp < Sinatra::Base
     begin
       ver = nil
       data.each do |m, v|
-        ver = pem.create_data_reg(m, v)
+        prefix = data.key?('prefix') ? data['prefix'] : nil
+
+        d = Pem::Data.new(m,pem,prefix)
+        ver = d.deploy_version(data['branch'], data['type'], data['source'], prefix)
       end
       { 'status' => 'successful','deployed_version' => ver }.to_json
-    rescue StandardError
-      { 'status' => 'failed' }.to_json
+    rescue StandardError => e
+      { 'status' => 'failed', 'error' => e.message }.to_json
     end
   end
 

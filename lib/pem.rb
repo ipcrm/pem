@@ -17,12 +17,15 @@ require "#{File.dirname(__FILE__)}/pem/utils"
 require "#{File.dirname(__FILE__)}/pem/filesync"
 require "#{File.dirname(__FILE__)}/pem/module"
 require "#{File.dirname(__FILE__)}/pem/module/version"
+require "#{File.dirname(__FILE__)}/pem/utils"
+
 
 # PEM Main class
 class Pem
   attr_reader :conf
   attr_reader :logger
   attr_reader :envs
+  attr_reader :data
   attr_reader :modules
   attr_reader :filesync
 
@@ -33,15 +36,15 @@ class Pem
   # @param logger Logger Object
   # @return PEM instance
   def initialize
-    @conf = load_config
+    @conf = Pem::Utils::Config.load_config
+    Pem::Utils::Setup.setup(self)
 
-    setup(self)
-
-    @envs = envs_details
-    @modules = {}
+    @envs     = envs_details
+    @modules  = {}
+    @data     = {}
     @filesync = Pem::Filesync.new(@conf)
 
-    load_modules(self)
+    Pem::Utils::Modules.load_modules(self)
   end
 
   # Retrieve all envs
