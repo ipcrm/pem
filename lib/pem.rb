@@ -25,7 +25,7 @@ class Pem
   attr_reader :conf
   attr_reader :logger
   attr_reader :envs
-  attr_reader :data
+  attr_reader :datamodules
   attr_reader :modules
   attr_reader :filesync
 
@@ -39,12 +39,13 @@ class Pem
     @conf = Pem::Utils::Config.load_config
     Pem::Utils::Setup.setup(self)
 
-    @envs     = envs_details
-    @modules  = {}
-    @data     = {}
-    @filesync = Pem::Filesync.new(@conf)
+    @envs         = envs_details
+    @modules      = {}
+    @datamodules  = {}
+    @filesync     = Pem::Filesync.new(@conf)
 
     Pem::Utils::Modules.load_modules(self)
+    Pem::Utils::Modules.load_datamodules(self)
   end
 
   # Retrieve all envs

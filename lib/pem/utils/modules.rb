@@ -15,6 +15,19 @@ class Pem
                 end
             end
 
+            # Used on startup to determine what modules are deployed populate the modules instance var
+            def self.load_datamodules(pem)
+                begin
+                    Pathname.new(pem.conf['data_dir']).children.select(&:directory?).each do |m|
+                        deets = YAML.safe_load(File.open("#{m}/.pemversion"),[Symbol])
+                        Pem::Datamodule.new(m.basename.to_s, deets['prefix'], pem).load_versions
+                    end
+                rescue StandardError => err
+                    PemLogger.logit(err,:fatal)
+                    raise(err)
+                end
+            end
+
             # Determine if module and version is in use in any environment.
             #
             # If the module is found in an enviornment it will raise an error

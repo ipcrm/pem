@@ -18,6 +18,11 @@ class Pem
                     raise(err)
                 end
             end
+
+            def self.setupmod(location,name)
+                PemLogger.logit("Creating module directory for #{name}", :debug) unless Dir.exists?(location)
+                FileUtils.mkdir(location) unless Dir.exist?(location)
+            end
         end
     end
 end

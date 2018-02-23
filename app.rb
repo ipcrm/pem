@@ -6,6 +6,8 @@ require "#{File.dirname(__FILE__)}/lib/pemlogger"
 require "#{File.dirname(__FILE__)}/lib/pem"
 require "#{File.dirname(__FILE__)}/lib/pem/env"
 require "#{File.dirname(__FILE__)}/lib/pem/module"
+require "#{File.dirname(__FILE__)}/lib/pem/datamodule"
+require "#{File.dirname(__FILE__)}/lib/pem/datamodule/version"
 require "#{File.dirname(__FILE__)}/lib/pem/module/version"
 
 # Create Pem App
@@ -99,7 +101,8 @@ class PemApp < Sinatra::Base
   #     "common": {
   #       "type": "git",
   #       "branch": "master",
-  #       "source": "https://github.com/myorg/common.git"
+  #       "source": "https://github.com/myorg/common.git",
+  #       "prefix": "you/know/it"  <--- Optional
   #     }
   #  }
   #
@@ -117,11 +120,19 @@ class PemApp < Sinatra::Base
       data.each do |m, v|
         prefix = data.key?('prefix') ? data['prefix'] : nil
 
-        d = Pem::Data.new(m,pem,prefix)
-        ver = d.deploy_version(data['branch'], data['type'], data['source'], prefix)
+        d = Pem::Datamodule.new(m,prefix,pem)
+
+        if v['type'] == 'git'
+          ver = d.deploy_git(v['branch'], v['source'])
+        else
+          raise "Wrong module type - only git allowed on this endpoint"
+        end
+
       end
       { 'status' => 'successful','deployed_version' => ver }.to_json
     rescue StandardError => e
+      puts e.message
+      puts e.backtrace
       { 'status' => 'failed', 'error' => e.message }.to_json
     end
   end
@@ -162,9 +173,11 @@ class PemApp < Sinatra::Base
       ftype = `file --brief --mime-type #{tf.path}`.strip
 
       if ftype == 'application/x-gzip'
-        data = { 'version' => version, 'file' => tf, 'type' => 'upload', 'prefix' => prefix }
-        ver = pem.create_data_reg(name, data)
-        { 'status' => 'successful', 'deployed_version' => ver }.to_json
+
+        d = Pem::Datamodule.new(name, prefix, pem)
+        d.deploy_upload(version,tf)
+
+        { 'status' => 'successful', 'deployed_version' => version }.to_json
       else
         { 'status' => 'failed', 'message' => 'Invalid archive supplied, expected a tar.gz file' }.to_json
       end
@@ -280,7 +293,23 @@ class PemApp < Sinatra::Base
 
   get '/api/data_registrations' do
     content_type 'application/json'
-    pem.data_registrations.to_json
+
+    ret = {}
+    pem.datamodules.each do |d,v|
+      ret[d] = {}
+      v.versions.each do |k|  
+        ret[d][k.version] = { 
+            'version'  => k.version,
+            'location' => k.location,
+            'type'     => k.type,
+            'source'   => k.source,
+            'branch'   => k.branch,
+            'prefix'   => k.prefix
+        }
+      end
+    end
+    
+    ret.to_json
   end
 
   # Create an environment

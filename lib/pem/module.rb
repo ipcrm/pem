@@ -1,4 +1,5 @@
 require "#{File.dirname(__FILE__)}/../pemlogger"
+require "#{File.dirname(__FILE__)}/utils/setup"
 
 class Pem
     class Module
@@ -12,7 +13,9 @@ class Pem
             @location = "#{pem.conf['mod_dir']}/#{name}"
             @versions = []
             @pem = pem
-            setup
+
+
+            Pem::Utils::Setup.setupmod(@location,@name)
             load_versions
         end
 
@@ -22,11 +25,6 @@ class Pem
                 PemLogger.logit(err, :fatal)
                 raise(err)
             end
-        end
-
-        def setup
-            PemLogger.logit("Creating module directory for #{name}", :debug) unless Dir.exists?(@location)
-            FileUtils.mkdir(@location) unless Dir.exist?(@location)
         end
 
         # Get versions currently deployed
