@@ -32,10 +32,10 @@ module Pem
     group = @conf['group'] || Process.gid
 
     begin
-    FileUtils.chown_R(user, group, @location)
+      FileUtils.chown_R(user, group, @location)
     rescue StandardError => err
-    Pemlogger.logit(err, :fatal)
-    raise(err)
+     Pemlogger.logit(err, :fatal)
+     raise(err)
     end
   end
 
@@ -46,35 +46,35 @@ module Pem
   #
   def deploy(modules)
     if File.directory?(@location)
-    begin
-      Pem::Logger.logit("Redeploying #{@location}")
-      destroy(@location)
-      deploy(modules)
-    rescue StandardError => err
-      Pem::Logger.logit(err, :fatal)
-      raise(err)
-    end
-    else
-    begin
-      Pem::Logger.logit("Creating #{@location}", :debug)
-      FileUtils.mkdir(@location)
-      FileUtils.mkdir("#{@location}/modules")
-
-      modules.each do |n, m|
-      Pem::Logger.logit("Deploying module #{n} @ version #{m}", :debug)
-      deploy_mod(n, m, "#{@location}/modules")
-      Pem::Logger.logit("Deploying module succeedded!", :debug)
+      begin
+        Pem::Logger.logit("Redeploying #{@location}")
+        destroy(@location)
+        deploy(modules)
+      rescue StandardError => err
+        Pem::Logger.logit(err, :fatal)
+        raise(err)
       end
+    else
+      begin
+        Pem::Logger.logit("Creating #{@location}", :debug)
+        FileUtils.mkdir(@location)
+        FileUtils.mkdir("#{@location}/modules")
 
-      # TODO: Need to add environment.conf setup
+        modules.each do |n, m|
+          Pem::Logger.logit("Deploying module #{n} @ version #{m}", :debug)
+          deploy_mod(n, m, "#{@location}/modules")
+          Pem::Logger.logit("Deploying module succeedded!", :debug)
+        end
 
-      set_owner
-      @pem.filesync.deploy
-      Pem::Logger.logit("Successfully created #{@location}!")
-    rescue StandardError => err
-      Pem::Logger.logit(err, :fatal)
-      raise(err)
-    end
+        # TODO: Need to add environment.conf setup
+
+        set_owner
+        @pem.filesync.deploy
+        Pem::Logger.logit("Successfully created #{@location}!")
+      rescue StandardError => err
+        Pem::Logger.logit(err, :fatal)
+        raise(err)
+      end
     end
 
     @pem.refresh_envs
@@ -90,20 +90,20 @@ module Pem
     mod_name = name.split('-')[1]
 
     begin
-    amods = @pem.modules
-    if amods.keys.include?(name) && amods[name].get_version(version)
-      FileUtils.cp_r(amods[name].get_version(version).location, "#{location}/#{mod_name}")
-      File.open("#{location}/#{mod_name}/.pemversion", 'w+') do |file|
-      file.write({ 'version' => version, 'name' => name }.to_yaml)
+      amods = @pem.modules
+      if amods.keys.include?(name) && amods[name].get_version(version)
+        FileUtils.cp_r(amods[name].get_version(version).location, "#{location}/#{mod_name}")
+        File.open("#{location}/#{mod_name}/.pemversion", 'w+') do |file|
+        file.write({ 'version' => version, 'name' => name }.to_yaml)
+        end
+      else
+        err = "Unkown module or version supplied for #{name} @ #{version} "
+        Pem::Logger.logit(err, :fatal)
+        throw(err)
       end
-    else
-      err = "Unkown module or version supplied for #{name} @ #{version} "
-      Pem::Logger.logit(err, :fatal)
-      throw(err)
-    end
     rescue StandardError => err
-    Pem::Logger.logit(err, :fatal)
-    raise(err)
+      Pem::Logger.logit(err, :fatal)
+      raise(err)
     end
   end
 
@@ -114,14 +114,14 @@ module Pem
   def mods
     rmods = {}
     begin
-    mods = Pathname.new("#{@location}/modules").children.select(&:directory?)
-    mods.each do |m|
-      md = mod_details(m.basename.to_s)
-      rmods[ md['name'] ] = md['version']
-    end
+      mods = Pathname.new("#{@location}/modules").children.select(&:directory?)
+      mods.each do |m|
+        md = mod_details(m.basename.to_s)
+        rmods[ md['name'] ] = md['version']
+      end
     rescue StandardError => err
-    Pem::Logger.logit(err, :fatal)
-    raise(err)
+      Pem::Logger.logit(err, :fatal)
+      raise(err)
     end
 
     rmods
@@ -138,17 +138,17 @@ module Pem
     puppetfile = R10K::Puppetfile.new(@location)
 
     begin
-    modules = puppetfile.modules
-    modules.each do |mod|
-      mods[mod.name] = if mod.is_a? R10K::Module::Forge
-              mod.expected_version
-              else
-              mod.version
-              end
-    end
+      modules = puppetfile.modules
+      modules.each do |mod|
+        mods[mod.name] = if mod.is_a? R10K::Module::Forge
+                mod.expected_version
+                else
+                mod.version
+                end
+      end
     rescue StandardError => err
-    Pem::Logger.logit(err, :fatal)
-    raise(err) unless puppetfile.load
+      Pem::Logger.logit(err, :fatal)
+      raise(err) unless puppetfile.load
     end
 
     mods
@@ -174,11 +174,11 @@ module Pem
   #
   def destroy(location)
     begin
-    Pem::Logger.logit("Removing #{location}")
-    FileUtils.rm_rf(location)
+      Pem::Logger.logit("Removing #{location}")
+      FileUtils.rm_rf(location)
     rescue StandardError => err
-    Pem::Logger.logit(err, :fatal)
-    raise(err)
+      Pem::Logger.logit(err, :fatal)
+      raise(err)
     end
 
     @pem.filesync.deploy
