@@ -128,7 +128,7 @@ class PemApp < Sinatra::Base
     end
   end
 
-  # Create a new data registration
+  # Upload a new data registration
   #
   # The name must be in a specific format, <registration name>-<version>
   # Optionally, the data prefix can come after the name - and should probably be URL encoded
